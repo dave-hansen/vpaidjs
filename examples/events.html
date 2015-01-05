@@ -1,0 +1,177 @@
+<html>
+<head>
+    <script type="text/javascript" src="//code.jquery.com/jquery-1.11.2.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js"></script>
+    <script src="../src/js/vpaid.js"></script>
+    <style>
+      .box {
+        width: 120px;
+        height: 28px;
+        background: #DDDDDD;
+        margin-bottom: 1px;
+        margin-top: 2px;
+        font-size: 12px;
+        padding-top: 8px;
+        text-align: center;
+      }
+
+      .player-control {
+        text-align: center;
+        display: inline-block;
+      }
+
+      .blocks {
+        width: 150px;
+        height: 300px;
+        background: #FFFFFF;
+        float: left;
+      }
+
+      .status-active {
+        background: #9ACD32;
+      }
+
+      .status-inactive {
+        background: #DDDDDD;
+      }
+    </style>
+    <script type="text/javascript">
+      function urlParam(key) {
+        q = window.location.search.slice(1).split("&");
+        for (i in q) {
+          kv = q[i].split(/=(.+)?/);
+          if (kv[0] == key && kv[1]) {
+            return kv[1];
+          }
+        }
+        return "";
+      }
+    </script>
+</head>
+<body>
+<div>
+    <div id="vpaidjs-example-wrapper" style="margin-left:20px;margin-bottom:10px;height:300px;width:1400px;">
+        <div id="vpaidjs-player-wrapper" style="position:relative;height:100%;width:450px;float:left; border: 1px dashed;">
+            <div id="vpaidjs-player"></div>
+        </div>
+        <div id="vpaidjs-status-panel" style="position: relative;float:left; margin-left:50px;">
+            <div id="vpaidjs-vpaid-linear-blocks" class="blocks">
+                <p>Status</p>
+                <div id="AdImpression" class="box status-inactive load-status">AdImpression</div>
+                <div id="AdLoading" class="box status-inactive load-status">AdLoading</div>
+                <div id="AdLoaded" class="box status-inactive load-status">AdLoaded</div>
+                <div id="AdComplete" class="box status-inactive load-status">AdComplete</div>
+                <div id="AdClickThru" class="box status-inactive load-status">AdClickThru</div>
+                <div id="AdError" class="box status-inactive load-status">AdError</div>
+            </div>
+            <div id="vpaidjs-video-ad-blocks" class="blocks">
+                <p>Playback</p>
+                <div id="AdVideoStart" class="box status-inactive player-status">AdVideoStart</div>
+                <div id="AdVideoFirstQuartile" class="box status-inactive player-status">AdVideoFirstQuartile</div>
+                <div id="AdVideoMidpoint" class="box status-inactive player-status">AdVideoMidpoint</div>
+                <div id="AdVideoThirdQuartile" class="box status-inactive player-status">AdVideoThirdQuartile</div>
+                <div id="AdVideoComplete" class="box status-inactive player-status">AdVideoComplete</div>
+            </div>
+            <div id="vpaidjs-adcall-blocks" class="blocks">
+                <p>Misc.</p>
+                <div id="adcall-complete" class="box status-inactive load-status">AD REQUESTED</div>
+                <div id="loaded" class="box status-inactive load-status">AD PROCESSED</div>
+            </div>
+        </div>
+    </div>
+    <div id="vpaidjs-event-controls">
+      <div id="vpaidjs-init" class="box status-inactive" style="text-align: center; display: inline-block;">CREATE</div>
+      <div id="vpaidjs-control-load" class="box status-inactive player-control">INIT</div>
+      <div id="vpaidjs-control-play" class="box status-inactive player-control">PLAY</div>
+    </div>
+    <div id="ad-tags">
+      <p></p>
+      <p style="font-size: 10px;">
+          <select id="tag-selector">
+              <option value="http://ads.adaptv.advertising.com/a/h/y2A0FW7vrbaCNAkO8UuILgT_gzraB+dE?cb=[CACHE_BREAKER]&pageUrl=test.com&description=VIDEO_DESCRIPTION&duration=VIDEO_DURATION&id=VIDEO_ID&keywords=VIDEO_KEYWORDS&title=VIDEO_TITLE&url=VIDEO_URL&eov=eov" selected>Adapt</option>
+              <option value="http://ad4.liverail.com/?LR_PUBLISHER_ID=1331&LR_SCHEMA=vast2&LR_TITLE=title&LR_VIDEO_ID=videoid&LR_CONTENT=6&LR_AUTOPLAY=1">LiveRail VAST 2.0</option>
+              <option value="http://www.adotube.com/kernel/vast/vast.php?omlSource=http://www.adotube.com/php/services/player/OMLService.php?avpid=UDKjuff&ad_type=pre-rolls&platform_version=vast20as3&vpaid=1&rtb=0&publisher=adotube.com&title=[VIDEO_TITLE]&tags=[VIDEO_TAGS]&description=[VIDEO_DESCRIPTION]&videoURL=[VIDEO_FILE_URL]">Adotube Linear</option>
+              <option value="http://www.adotube.com/kernel/vast/vast.php?omlSource=http://www.adotube.com/php/services/player/OMLService.php?avpid=pctozxH&ad_type=overlays&platform_version=vast20as3&vpaid=1&rtb=0&publisher=adotube.com&title=[VIDEO_TITLE]&tags=[VIDEO_TAGS]&description=[VIDEO_DESCRIPTION]&videoURL=[VIDEO_FILE_URL" class="nl-overlay">Adotube Overlay</option>
+              <option value="http://u-ads.adap.tv/a/h/wilzNkMXf6VZoPGdqKAkgIk+RISzeDVn?cb=${AdPlayer.cachebreaker}&pageUrl=${embeddingPageUrl}&eov=eov">Adkarma</option>
+              <option value="http://server.cpmstar.com/view.aspx?poolid=56336&vast=2&vpaid=1">CPMStar</option>
+              <option value="http://u-ads.adap.tv/a/h/dlgHPnKSWkqy8SyrV4bKHsNLkPvJHBp6QKDhIONCoRs=?cb={cachebreaker}&pageUrl=utorrent.com&eov=eov">Plarium In-Client VAST</option>
+              <option value="http://openx.openvideoads.org/openx/www/delivery/fc.php?%20script=bannerTypeHtml:vastInlineBannerTypeHtml:vastInlineHtml&%20zones=pre-roll0-0%3D5&nz=1&source=&r=R0.8062691302038729&%20block=1&format=vast&charset=UTF-8">Country Life Butter - VAST</option>
+              <option value="http://u-ads.adap.tv/a/h/wilzNkMXf6VZoPGdqKAkgIk+RISzeDVn?cb=4928928&pageUrl=http%3A%2F%2Fcdn.bitmedianetwork.com%2Fvideo%2Fadaptv.html%3Fkeywords%3Dadkarmatyp1118%26content%3DaHR0cDovL3ZpZGVvLmJpdG1lZGlhbmV0d29yay5jb20vYnVuZGxlcy8zJTIwLSUyMEludGVybmV0cyUyME93biUyMEJveS02NDB4NDgwLm1wNA%3D%3D&eov=eov&a.d.pageUrl=http%3A%2F%2Fcdn.bitmedianetwork.com%2Fvideo%2Fadaptv.html%3Fkeywords%3Dadkarmatyp1118%26content%3DaHR0cDovL3ZpZGVvLmJpdG1lZGlhbmV0d29yay5jb20vYnVuZGxlcy8zJTIwLSUyMEludGVybmV0cyUyME93biUyMEJveS02NDB4NDgwLm1wNA%3D%3D&p.vw.viewable=1&p.vw.active=1&p.vw.domId=%3A0&p.appListTime=1418158256381&p.vw.psize=3&a.sdkType=flash&p.vw.viewableOld=-1&p.vw.area=307200&a.sdk=adaptv&p.vw.callbackTime=1418158256738&p.vw.viewableOpportunity=1&a.hasAppInfo=true">SyncVAST Adapt</option>
+              <option value="http://ad4.liverail.com/?LR_PUBLISHER_ID=1912&LR_PARTNERS=752933&LR_SCHEMA=vast2-vpaid&LR_ALLOW_RETRY=4&LR_AUTOPLAY=0&LR_CONTENT=1&LR_VERTICALS=Entertainment&LR_DESCRIPTION=Yashi_VideoTitle&LR_TITLE=VideoTitle&LR_VIDEO_ID=VideoId">Sync VAST Liverail</option>
+              <option value="http://ad4.liverail.com/?LR_PUBLISHER_ID=77577&LR_SCHEMA=vast2-vpaid&LR_AUTOPLAY=1&LR_TITLE=&LR_VIDEO_ID=">Kitara Liverail [dbam]</option>
+              <option value="http://spc--cefeeeggbhefbegdlgienged--vast2as3.telemetryverification.net/?;subTagID=10;subTagName=RS;clickTrack=;impactTrack=;referrer=;showName=;showLen=;cb=[timestamp]">Telemetry - Verizon [dbam]</option>
+              <option value="http://cdn.innovid.com/iroll/vast/1hk265">LiveRail - Puss in Boots</option>
+              <option value="http://search.spotxchange.com/vast/2.00/100620?VPAID=1&content_page_url=http%3A%2F%2Fdbam.jonbloch.com%2Fdbam%2Ftest%2Fkitara%2Ftest-src.html&cb=6390&player_width=480&player_height=320&vid_url=&vid_id=&vid_title=&vid_description=">SpotXchange [dbam]</option>
+              <option value="http://search.spotxchange.com/vast/2.00/93024?cb=1418326942524&content_page_url=http%3A%2F%2Fdbam.jonbloch.com%2Fdbam%2Ftest%2Fkitara%2Ftest-src.html&VPAID=1&player_width=480&player_height=320&content_type=video&vid_duration=static&vid_url=static&vid_id=static&vid_title=static&vid_description=static">SpotXchange - Blank [dbam]</option>
+              <option value="http://search.spotxchange.com/vast/2.00/100620?VPAID=1&content_page_url=http%3A%2F%2Fdbam.jonbloch.com%2Fdbam%2Ftest%2Fkitara%2Ftest-src.html&cb=4466&player_width=480&player_height=320&vid_url=&vid_id=&vid_title=&vid_description=">SpotXchange - Blank2 [dbam]</option>
+              <option value="">Custom</option>
+          </select>
+          <input id="custom-tag-url" style="width: 600px;" value="">
+      </p>
+    </div>
+    <div>
+        <div id="vpaidjs-ad-init" class="box status-inactive load-status">JS AD LOADING</div>
+        <div id="vpaidjs-ad-play" class="box status-inactive load-status">JS AD START</div>
+        <div id="ad-log">
+    </div>
+    </div>
+    </div>
+
+<script type="text/javascript">
+    var ad;
+
+    $(function() {
+      $("#vpaidjs-init").click(create);
+      $("#vpaidjs-control-load").click(init);
+      $("#vpaidjs-control-play").click(play);
+    });
+
+    function create(e) {
+      $("#vpaidjs-init").removeClass("status-active").addClass("block-inactve");
+      $(".box").removeClass("status-active").addClass("block-inactve");
+
+      ad = new VPAID("vpaidjs-player", {
+        swfPath: "../dist/vpaidjs.swf"
+      });
+      ad.create();
+    }
+
+    function init(e) {
+      var src = $("#tag-selector").val() ? $("#tag-selector").val() : $("#custom-tag-url").val(),
+          isOverlay = $("#tag-selector :selected").hasClass('nl-overlay');
+
+      $(".load-status").removeClass("status-active").addClass("block-inactve");
+      $("#ad-log").empty();
+
+      config = {
+        ads: {
+          schedule: []
+        },
+        debug: {
+           "levels": "fatal, config, vast_template, vpaid, http_calls, playlist, api"
+          },
+        allowPlaylistControl: true
+      };
+
+      var schedule = {};
+      if (isOverlay) {
+          schedule = { "startTime": "00:00:10", "duration": 30, tag: src };
+      } else {
+          schedule = { "position": "pre-roll", "tag": src };
+      }
+      config['ads']['schedule'].push(schedule);
+
+      ad.init(config);
+
+      $("#vpaidjs-control-load").removeClass("status-inactive").addClass("status-active");
+      $("#vpaidjs-control-play").removeClass("status-active").addClass("status-inactive");
+    }
+
+    function play(e) {
+      ad.play();
+
+      $(".player-status").removeClass("status-active").addClass("status-inactive");
+      $("#vpaidjs-control-play").removeClass("status-inactive").addClass("status-active");
+    }
+</script>
+</body></html>

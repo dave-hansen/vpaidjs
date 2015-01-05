@@ -1,0 +1,16 @@
+# content types
+*.avi
+*.flv
+*.mov
+*.mp4
+*.swf
+
+# InteliJ stuff
+.idea/*
+*.iml
+
+# ignore all non-plugin code; allows easier debugging and cleaner repos
+src/org/openvideoads
+
+# etc
+.DS_Store
