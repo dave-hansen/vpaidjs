@@ -9,7 +9,7 @@
 .idea/*
 *.iml
 
-# ignore all non-plugin code; allows easier debugging and cleaner repos
+# ignore ova dev code if present
 src/org/openvideoads
 
 # etc
