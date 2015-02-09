@@ -104,7 +104,7 @@ package org.vpaidjs {
             var message:String = "";
             try {
               message = event.data.message;
-            } catch(e) {}
+            } catch(e:Error) {}
 
             ExternalInterface.call("vpaidjs.AdLog", message);
         }
