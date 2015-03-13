@@ -124,11 +124,12 @@ var VPAID = function(playerId, options) {
             player.ad = document.getElementById(player.playerId);
 
             if (typeof player.ad.initAd == "function") {
+              clearInterval(loadCheck);
+
               if (typeof player.options.success == "function") {
                 player.options.success();
               }
             }
-            clearInterval(loadCheck);
           }
         }, 100);
       }
