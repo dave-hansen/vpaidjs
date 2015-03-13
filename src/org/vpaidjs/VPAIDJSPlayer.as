@@ -18,6 +18,7 @@
 package org.vpaidjs {
     import flash.display.Sprite;
     import flash.external.ExternalInterface;
+    import flash.system.Security;
 
     import org.openvideoads.vast.VASTController;
     import org.openvideoads.vast.config.Config;
@@ -45,6 +46,7 @@ package org.vpaidjs {
         private var _playerVolume:Number = 1;         // 100%
 
         public function VPAIDJSPlayer():void {
+            Security.allowDomain("*");
             registerExternalAPI();
         }
 
