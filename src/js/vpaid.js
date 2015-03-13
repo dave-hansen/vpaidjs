@@ -1,4 +1,4 @@
-// version 0.1a1
+// version 0.1a2
 
 var vpaidjs = vpaidjs || {};
 
@@ -44,7 +44,7 @@ var VPAID = function(playerId, options) {
       flashvars,
       params,
       attributes,
-      cbOnCreate
+      onCreate
     );
   };
 
@@ -107,7 +107,7 @@ var VPAID = function(playerId, options) {
 
   // ridiculously overzealous way of verifying SWF fully loaded,
   // including the readiness of initAd() itself
-  function cbOnCreate(e) {
+  function onCreate(e) {
     if (!e.success || !e.ref ) {
       vpaidjs.log("Failed to embed SWF.")
       return false;
