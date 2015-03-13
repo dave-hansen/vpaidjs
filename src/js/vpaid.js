@@ -4,7 +4,7 @@ var vpaidjs = vpaidjs || {};
 
 // defaults
 vpaidjs.options = {
-  volume: 1,
+  volume: 0.8,
   swfPath: "vpaidjs.swf",
   debug: false
 };
@@ -15,8 +15,6 @@ var VPAID = function(playerId, options) {
 
   this.playerId = playerId;
   this.options = vpaidjs.options;
-  this.baseVolume = vpaidjs.options.volume;
-  this.isMuted = false;
 
   for (var option in options) {
     player.options[option] = options[option];
@@ -67,7 +65,6 @@ var VPAID = function(playerId, options) {
 
   this.startAd = function() {
     player.ad.startAd();
-    player.volume(player.baseVolume);
   };
 
   this.resizeAd = function(x, y) {
@@ -98,27 +95,10 @@ var VPAID = function(playerId, options) {
     // not implemented
   };
 
-
   this.volume = function(level) {
-    if (level == 0) {
-      player.isMuted = true;
-    } else {
-      player.isMuted = false;
-      player.baseVolume = level;
-    }
-
     // TODO: no idea why setting needs to happen twice, and only from JS
     player.ad.volume(level);
     player.ad.volume(level);
-  };
-
-  // works as a toggle too
-  this.mute = function() {
-    if (!player.isMuted) {
-      player.volume(0);
-    } else {
-      player.volume(player.baseVolume);
-    }
   };
 
   this.destroy = function() {
