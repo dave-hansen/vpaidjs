@@ -16,6 +16,7 @@
  */
 
 package org.vpaidjs {
+    import com.adobe.serialization.json.JSON;
     import flash.display.Sprite;
     import flash.external.ExternalInterface;
     import flash.system.Security;
@@ -24,20 +25,18 @@ package org.vpaidjs {
     import org.openvideoads.vast.config.Config;
     import org.openvideoads.vast.config.ConfigLoadListener;
     import org.openvideoads.vast.config.groupings.VPAIDConfig;
+    import org.openvideoads.vast.events.NonLinearSchedulingEvent;
+    import org.openvideoads.vast.events.StreamSchedulingEvent;
+    import org.openvideoads.vast.events.VPAIDAdDisplayEvent;
     import org.openvideoads.vast.schedule.ads.AdSlot
     import org.openvideoads.vpaid.IVPAID;
+    import org.openvideoads.vpaid.VPAIDBase;
     import org.openvideoads.util.DisplayProperties;
 
-    import org.openvideoads.vast.events.VPAIDAdDisplayEvent;
-    import org.openvideoads.vpaid.VPAIDEvent;
-
     public class VPAIDJSPlayer extends Sprite implements ConfigLoadListener {
-        private var _version:String = "0.1.1";
+        private var _version:String = "0.1.1a";
 
-        // lazy assignments because our JS overlay doesn't have control bars
-        private var _controlBarHeight:Number = -1;
-        private var _controlBarWidth:Number = 0;
-
+        private var _ad:IVPAID = new VPAIDBase();
         private var _vastController:VASTController;
         private var _display:DisplayProperties;
 
@@ -67,7 +66,62 @@ package org.vpaidjs {
                 _vastController.config.adsConfig.vpaidConfig.nonLinearRegion = VPAIDConfig.RESERVED_FULLSCREEN_TRANSPARENT;
             }
 
-            _vastController.addEventListener(VPAIDAdDisplayEvent.AD_LOG, externalAdLog);
+            _vastController.addEventListener(VPAIDAdDisplayEvent.LINEAR_COMPLETE, onComplete);
+            _vastController.addEventListener(VPAIDAdDisplayEvent.LINEAR_LOADED, onLoaded);
+            _vastController.addEventListener(VPAIDAdDisplayEvent.LINEAR_START, onStart);
+
+            _vastController.addEventListener(VPAIDAdDisplayEvent.NON_LINEAR_START, onStart);
+            _vastController.addEventListener(VPAIDAdDisplayEvent.NON_LINEAR_LOADED, onLoaded);
+            _vastController.addEventListener(VPAIDAdDisplayEvent.NON_LINEAR_COMPLETE, onComplete);
+
+            registerExternalEvent(VPAIDAdDisplayEvent.LINEAR_LOADING, "AdLoading");
+            registerExternalEvent(VPAIDAdDisplayEvent.NON_LINEAR_LOADING, "AdLoading");
+            registerExternalEvent(VPAIDAdDisplayEvent.LINEAR_LOADED, "AdLoaded");
+            registerExternalEvent(VPAIDAdDisplayEvent.NON_LINEAR_LOADED, "AdLoaded");
+            registerExternalEvent(VPAIDAdDisplayEvent.LINEAR_START, "AdStarted");
+            registerExternalEvent(VPAIDAdDisplayEvent.NON_LINEAR_START, "AdStarted");
+            registerExternalEvent(VPAIDAdDisplayEvent.LINEAR_PAUSE, "AdPaused");
+            registerExternalEvent(VPAIDAdDisplayEvent.NON_LINEAR_PAUSE, "AdPaused");
+            registerExternalEvent(VPAIDAdDisplayEvent.LINEAR_COMPLETE, "AdStopped");
+            registerExternalEvent(VPAIDAdDisplayEvent.NON_LINEAR_COMPLETE, "AdStopped");
+            registerExternalEvent(VPAIDAdDisplayEvent.LINEAR_LINEAR_CHANGE, "AdLinearChange");
+            registerExternalEvent(VPAIDAdDisplayEvent.NON_LINEAR_LINEAR_CHANGE, "AdLinearChange");
+            registerExternalEvent(VPAIDAdDisplayEvent.LINEAR_EXPANDED_CHANGE, "AdExpandedChange");
+            registerExternalEvent(VPAIDAdDisplayEvent.NON_LINEAR_EXPANDED_CHANGE, "AdExpandedChange");
+            registerExternalEvent(VPAIDAdDisplayEvent.LINEAR_VOLUME_CHANGE, "AdVolumeChange");
+            registerExternalEvent(VPAIDAdDisplayEvent.NON_LINEAR_VOLUME_CHANGE, "AdVolumeChange");
+            registerExternalEvent(VPAIDAdDisplayEvent.LINEAR_IMPRESSION, "AdImpression");
+            registerExternalEvent(VPAIDAdDisplayEvent.NON_LINEAR_IMPRESSION, "AdImpression");
+            registerExternalEvent(VPAIDAdDisplayEvent.VIDEO_AD_START, "AdVideoStart");
+            registerExternalEvent(VPAIDAdDisplayEvent.VIDEO_AD_FIRST_QUARTILE, "AdVideoFirstQuartile");
+            registerExternalEvent(VPAIDAdDisplayEvent.VIDEO_AD_MIDPOINT, "AdVideoMidpoint");
+            registerExternalEvent(VPAIDAdDisplayEvent.VIDEO_AD_THIRD_QUARTILE, "AdVideoThirdQuartile");
+            registerExternalEvent(VPAIDAdDisplayEvent.VIDEO_AD_COMPLETE, "AdVideoComplete");
+            registerExternalEvent(VPAIDAdDisplayEvent.LINEAR_CLICK_THRU, "AdClickThru");
+            registerExternalEvent(VPAIDAdDisplayEvent.NON_LINEAR_CLICK_THRU, "AdClickThru");
+            registerExternalEvent(VPAIDAdDisplayEvent.LINEAR_USER_ACCEPT_INVITATION, "AdUserAcceptInvitation");
+            registerExternalEvent(VPAIDAdDisplayEvent.NON_LINEAR_USER_ACCEPT_INVITATION, "AdUserAcceptInvitation");
+            registerExternalEvent(VPAIDAdDisplayEvent.LINEAR_USER_MINIMIZE, "AdUserMinimize");
+            registerExternalEvent(VPAIDAdDisplayEvent.NON_LINEAR_USER_MINIMIZE, "AdUserMinimize");
+            registerExternalEvent(VPAIDAdDisplayEvent.LINEAR_USER_CLOSE, "AdUserClose");
+            registerExternalEvent(VPAIDAdDisplayEvent.NON_LINEAR_USER_CLOSE, "AdUserClose");
+            registerExternalEvent(VPAIDAdDisplayEvent.LINEAR_PLAYING, "AdPlaying");
+            registerExternalEvent(VPAIDAdDisplayEvent.NON_LINEAR_PLAYING, "AdPlaying");
+            registerExternalEvent(VPAIDAdDisplayEvent.AD_LOG, "AdLog");
+            registerExternalEvent(VPAIDAdDisplayEvent.LINEAR_ERROR, "AdError");
+            registerExternalEvent(VPAIDAdDisplayEvent.NON_LINEAR_ERROR, "AdError");
+
+            // VPAID 2.x events
+            registerExternalEvent(VPAIDAdDisplayEvent.SKIPPED, "AdSkipped");
+            registerExternalEvent(VPAIDAdDisplayEvent.SKIPPABLE_STATE_CHANGE, "AdSkippableStateChange");
+            registerExternalEvent(VPAIDAdDisplayEvent.SIZE_CHANGE, "AdSizeChange");
+            registerExternalEvent(VPAIDAdDisplayEvent.DURATION_CHANGE, "AdDurationChange");
+            registerExternalEvent(VPAIDAdDisplayEvent.AD_INTERACTION, "AdInteraction");
+
+            // Extra events
+            registerExternalEvent(NonLinearSchedulingEvent.SCHEDULE, "AdReady");
+            registerExternalEvent(StreamSchedulingEvent.SCHEDULE, "AdReady");
+
             _vastController.disableRegionDisplay();
 
             _display = new DisplayProperties(
@@ -77,14 +131,43 @@ package org.vpaidjs {
                 'normal',
                 _vastController.getActiveDisplaySpecification(false),
                 false,
-                _controlBarWidth,
-                _controlBarHeight
+                0,
+                -1
             );
 
             _vastController.enableRegionDisplay(_display);
 
             // Ok, let's load up the VAST data from our Ad Server
             _vastController.load();
+        }
+
+        // register an event to publish to the vpaid.js javascript ad object
+        protected function registerExternalEvent(ovaEvent:String, vpaidEvent:String):void {
+            _vastController.addEventListener(ovaEvent, function(event:*) {
+                var dataObj:Object = new Object();
+                dataObj["data"] = event.hasOwnProperty("data") ? event.data : null;
+
+                if (event.hasOwnProperty("adSlot")) {
+                    dataObj.adSlot = event.adSlot.toJSObject();
+                } if (event.hasOwnProperty("stream")) {
+                    dataObj.stream = event.stream.toJSObject();
+                }
+
+                // bridge as3 objects to js by sending it as a full JSON string
+                var jsonData:String = com.adobe.serialization.json.JSON.encode(dataObj);
+                ExternalInterface.call("vpaidjs.triggerEvent", ExternalInterface.objectID, vpaidEvent, jsonData);
+            });
+        }
+
+        protected function onStart(event:VPAIDAdDisplayEvent):void {
+            _ad = _vastController.getActiveVPAIDAd();
+        }
+
+        protected function onLoaded(event:VPAIDAdDisplayEvent):void {
+        }
+
+        protected function onComplete(event:VPAIDAdDisplayEvent):void {
+            _ad = new VPAIDBase();
         }
 
          // Named in the same format as the IAB-specified AS3 interfact, just drop the 'Ad' suffix
@@ -104,30 +187,14 @@ package org.vpaidjs {
             catch (e:Error) {}
         }
 
-        protected function externalAdLog(event:VPAIDAdDisplayEvent):void {
-            var message:String = "";
-            try {
-              message = event.data.message;
-            } catch(e:Error) {}
-
-            ExternalInterface.call("vpaidjs.AdLog", message);
-        }
-
-        protected function triggerJsEvent(eventName:String):void {
-            ExternalInterface.call("vpaidjs.Event", eventName);
-        }
-
         /**
          *  JAVASCRIPT API
          */
 
         public function jsVolume(level:Number):void {
-            var ad:IVPAID = _vastController.getActiveVPAIDAd();
-            if (_vastController != null && ad != null) {
-                if (ad != null) {
-                    ad.adVolume = _playerVolume;
-                }
-                _playerVolume = level;
+            _playerVolume = level;
+            if (_ad != null) {
+                _ad.adVolume = level;
             }
         }
 
@@ -155,18 +222,23 @@ package org.vpaidjs {
         }
 
         public function jsStopAd():void {
-            var ad:IVPAID = _vastController.getActiveVPAIDAd();
-            if (_vastController != null && ad != null) {
-                ad.stopAd();
-                triggerJsEvent(VPAIDEvent.AdStopped);
-            }
+            _ad.stopAd();
         }
 
         public function jsSkipAd():void {
-            var ad:IVPAID = _vastController.getActiveVPAIDAd();
-            if (_vastController != null && ad != null) {
-                ad.skipAd();
-            }
+            _ad.skipAd();
+        }
+
+        public function jsPauseAd():void {
+            _ad.pauseAd();
+        }
+
+        public function jsResumeAd():void {
+            _ad.resumeAd();
+        }
+
+        public function jsExpandAd():void {
+            _ad.expandAd();
         }
 
         public function jsResizeAd(width:Number, height:Number):void {
@@ -179,36 +251,8 @@ package org.vpaidjs {
             }
         }
 
-        // TODO: check if ad is capable of being paused AND currently playing
-        public function jsPauseAd():void {
-            var ad:IVPAID = _vastController.getActiveVPAIDAd();
-            if (_vastController != null && ad != null) {
-                ad.pauseAd();
-            }
-        }
-
-        // TODO: check if ad is capable of being paused AND currently paused
-        public function jsResumeAd():void {
-            var ad:IVPAID = _vastController.getActiveVPAIDAd();
-            if (_vastController != null && ad != null) {
-                ad.resumeAd();
-            }
-        }
-
-        // TODO: don't work; probably need to check if possible/allowed
-        public function jsExpandAd():void {
-            var ad:IVPAID = _vastController.getActiveVPAIDAd();
-            if (_vastController != null && ad != null) {
-                ad.expandAd();
-            }
-        }
-
-        // TODO: don't work; probably need to check if possible/allowed
         public function jsCollapseAd():void {
-            var ad:IVPAID = _vastController.getActiveVPAIDAd();
-            if (_vastController != null && ad != null) {
-                ad.collapseAd();
-            }
+            _ad.collapseAd();
         }
     }
 }

@@ -1,4 +1,4 @@
-// version 0.1.1
+// version 0.1.1a
 
 var vpaidjs = vpaidjs || {};
 
@@ -80,36 +80,43 @@ var VPAID = function(playerId, options) {
   };
 
   this.pauseAd = function() {
-    // not implemented
+    player.ad.pauseAd();
   };
 
   this.resumeAd = function() {
-    // not implemented
+    player.ad.resumeAd();
   };
 
   this.expandAd = function() {
-    // not implemented
+    player.ad.expandAd();
   };
 
   this.collapseAd = function() {
-    // not implemented
+    player.ad.collapseAd();
   };
 
   this.volume = function(level) {
-    // TODO: no idea why setting needs to happen twice, and only from JS
-    player.ad.volume(level);
     player.ad.volume(level);
   };
 
   this.destroy = function() {
+    if (player.ad) {
+      player.ad.stopAd();
+    }
     swfobject.removeSWF(player.playerId);
   };
 
-  // ridiculously overzealous way of verifying SWF fully loaded,
-  // including the readiness of initAd() itself
+  this.on = function(eventName, cb) {
+    $(document).on(eventName, "#" + playerId, cb);
+  };
+
+  // now start it up
+  this.create();
+
+  // take extra care verifying SWF and ad fully ready
   function onCreate(e) {
     if (!e.success || !e.ref ) {
-      vpaidjs.log("Failed to embed SWF.")
+      vpaidjs.log("Failed to embed SWF.");
       return false;
     }
 
@@ -135,9 +142,6 @@ var VPAID = function(playerId, options) {
       }
     }, 100);
   }
-
-  // now start it up
-  this.create();
 };
 
 vpaidjs.log = function(message) {
@@ -148,8 +152,13 @@ vpaidjs.log = function(message) {
   }
 };
 
-// External function called from vpaidjs.swf
-vpaidjs.AdLog = function(message) {
-  vpaidjs.log("[AdLog] " + message)
+// in order to bridge events, actionscript objects arrive here as json strings,
+//   these are converted to javascript objects and sent on their way
+vpaidjs.triggerEvent = function(objectId, eventType, dataObj) {
+  $("#" + objectId).trigger(eventType, JSON.parse(dataObj));
+  vpaidjs.log("[vpaid.js] event: " + eventType);
 };
+
+var VPAIDEvents = ["AdReady", "AdLoading", "AdLoaded", "AdStarted", "AdPaused", "AdStopped", "AdLinearChange", "AdExpandedChange", "AdVolumeChange", "AdImpression", "AdVideoStart", "AdVideoFirstQuartile", "AdVideoMidpoint", "AdVideoThirdQuartile", "AdVideoComplete", "AdClickThru", "AdUserAcceptInvitation", "AdUserMinimize", "AdUserClose", "AdPlaying", "AdLog", "AdError", "AdSkipped", "AdSkippableStateChange", "AdSizeChange", "AdDurationChange", "AdInteraction"];
+
 var __vpaidjs__ = window.vpaidjs = vpaidjs;
