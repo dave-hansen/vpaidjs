@@ -1,0 +1,3 @@
+[submodule "ova.as3"]
+	path = ova.as3
+	url = git@github.com:dave-hansen/ova.as3.git

@@ -32,6 +32,8 @@ package org.vpaidjs {
     import org.openvideoads.vpaid.VPAIDEvent;
 
     public class VPAIDJSPlayer extends Sprite implements ConfigLoadListener {
+        private var _version:String = "0.1.1";
+
         // lazy assignments because our JS overlay doesn't have control bars
         private var _controlBarHeight:Number = -1;
         private var _controlBarWidth:Number = 0;
