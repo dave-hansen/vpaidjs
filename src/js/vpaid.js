@@ -1,4 +1,4 @@
-// version 0.1a2
+// version 0.1.1
 
 var vpaidjs = vpaidjs || {};
 
