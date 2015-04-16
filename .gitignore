@@ -9,8 +9,5 @@
 .idea/*
 *.iml
 
-# ignore ova dev code if present
-src/org/openvideoads
-
 # etc
 .DS_Store
