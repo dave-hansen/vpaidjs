@@ -10,7 +10,6 @@
     </style>
 
     <script src="../src/js/vpaid.js"></script>
-    <script src="js/base64.js"></script>
     <script src="js/jquery-1.11.0.min.js"></script>
     <script src="js/swfobject.js"></script>
 </head>
@@ -47,17 +46,8 @@
         vpaidAd.stopAd();
       } catch(e) {}
 
-
-      var config = {
-        ads: {
-          schedule: [{
-            "position": "pre-roll",
-            "tag": $("#ad-tag").val()
-          }]
-        }
-      };
-
-      vpaidAd.initAd(config);
+      var adTag = $("#ad-tag").val();
+      vpaidAd.initAd(adTag);
     }
 
     function resizeAd(e) {

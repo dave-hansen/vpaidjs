@@ -198,18 +198,31 @@ package org.vpaidjs {
             }
         }
 
-        //  Request and parse VPAID, given the JSON from Javascript interface
-        public function jsInitAd(ovaConfig:Object):void {
-            if (ovaConfig != null) {
-                _vastController = new VASTController();
-                _vastController.startStreamSafetyMargin = 100;
-                _vastController.endStreamSafetyMargin = 300;
+        //  Request, load, and prepare Flash adw
+        public function jsInitAd(adTag:String, debug:Boolean):void {
+            _vastController = new VASTController();
+            _vastController.startStreamSafetyMargin = 100;
+            _vastController.endStreamSafetyMargin = 300;
 
-                var playerConfig:Config = new Config();
-                playerConfig.playerConfig = _vastController.getDefaultPlayerConfig();
+            var playerConfig:Config = new Config();
+            playerConfig.playerConfig = _vastController.getDefaultPlayerConfig();
 
-                _vastController.initialise(ovaConfig, false, this, playerConfig);
+            var ovaConfig:Object = {
+                ads: {
+                    schedule: [{
+                        tag: adTag,
+                        position: "pre-roll"    // for OVA's sake, treat all as pre-roll
+                    }]
+                }
+            };
+
+            if (debug == true) {
+                ovaConfig.debug = {
+                    "levels": "fatal, config, vast_template, vpaid, http_calls, playlist, api"
+                };
             }
+
+            _vastController.initialise(ovaConfig, false, this, playerConfig);
         }
 
         public function jsStartAd(adSlotIndex:Number=0):void {

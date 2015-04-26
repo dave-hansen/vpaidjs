@@ -52,15 +52,8 @@ var VPAID = function(playerId, options) {
    *  VPAID Protocol Methods
    */
 
-  this.initAd = function(config) {
-
-    if (player.options.debug) {
-      config.debug = {
-        "levels": "fatal, config, vast_template, vpaid, http_calls, playlist, api"
-      };
-    }
-
-    player.ad.initAd(config);
+  this.initAd = function(adTag) {
+    player.ad.initAd(adTag, player.options.debug);
   };
 
   this.startAd = function() {
