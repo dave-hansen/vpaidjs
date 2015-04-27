@@ -25,9 +25,6 @@ module.exports = function(grunt) {
     },
   });
 
-  grunt.registerTask("web", [
-    "connect:server"
-  ]);
   grunt.registerTask("build", [
     "air_sdk:vpaidjs_swf"
   ]);
