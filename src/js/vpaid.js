@@ -11,7 +11,7 @@ vpaidjs.options = {
 
 var VPAID = function(playerId, options) {
   var player = this;
-  this.ad = new Object;
+  this.ad = new Object();
 
   this.playerId = playerId;
   this.options = vpaidjs.options;
@@ -39,7 +39,7 @@ var VPAID = function(playerId, options) {
       player.playerId,
       "100%",
       "100%",
-      "10.5",   // XXX: not sure what's safe here
+      "10.5",
       "",
       flashvars,
       params,
@@ -115,7 +115,7 @@ var VPAID = function(playerId, options) {
 
     // wait just a smidge for Flash to start
     var readyCheck = setInterval(function () {
-      if (typeof e.ref.PercentLoaded !== "undefined" && e.ref.PercentLoaded()) {
+      if (typeof e.ref.PercentLoaded === "function") {
         clearInterval(readyCheck);
         // timer to wait for swf object to fully load
         var loadCheck = setInterval(function () {
