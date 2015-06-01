@@ -18,6 +18,8 @@
 package org.vpaidjs {
     import com.adobe.serialization.json.JSON;
     import flash.display.Sprite;
+    import flash.display.StageAlign;
+    import flash.display.StageScaleMode;
     import flash.external.ExternalInterface;
     import flash.system.Security;
 
@@ -34,7 +36,7 @@ package org.vpaidjs {
     import org.openvideoads.util.DisplayProperties;
 
     public class VPAIDJSPlayer extends Sprite implements ConfigLoadListener {
-        private var _version:String = "0.1.1a";
+        private var _version:String = "0.1.1-adplayer-fix";
 
         private var _ad:IVPAID = new VPAIDBase();
         private var _vastController:VASTController;
@@ -259,6 +261,9 @@ package org.vpaidjs {
                 // TODO: resize AND scale, but not beyond the initial values; re-align to center if you're really cool
                 _display.displayWidth = width;
                 _display.displayHeight = height;
+
+                stage.scaleMode = StageScaleMode.NO_SCALE;
+                stage.align = StageAlign.TOP_LEFT;
 
                 _vastController.resizeOverlays(_display);
             }
