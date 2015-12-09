@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+
+    <style type="text/css">
+        #vpaid-container {
+          background-color: silver;
+        }
+
+		.triggered {
+            background-color: lightgreen;
+        }
+
+        .row {
+            padding: 5px;
+        }
+
+        .row div[class*="col-"] {
+            vertical-align: middle;
+            float: none;
+            display: table-cell;
+            margin: 5px;
+        }
+    </style>
+    <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/ie8/0.3.0/ie8.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/dom4/1.6.0/dom4.js"></script>
+    <![endif]-->
+    <script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js"></script>
+    <script src="../src/js/vpaid.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="col-lg-1"></div>
+        <div class="col-lg-8">
+            <div class="row">
+                <div class="col-lg-6 left-side">
+				   <div class="btn-group-vertical">
+					   <button id="AdLoaded" type="button" class="btn btn-inactive vpaid-event">AdLoaded</button>
+					   <button id="AdImpression" type="button" class="btn btn-inactive vpaid-event">AdImpression</button>
+					   <button id="AdStarted" type="button" class="btn btn-inactive vpaid-event">AdStarted</button>
+					   <button id="AdPaused" type="button" class="btn btn-inactive vpaid-event">AdPaused</button>
+					   <button id="AdStopped" type="button" class="btn btn-inactive vpaid-event">AdStopped</button>
+					   <button id="AdError" type="button" class="btn btn-inactive vpaid-event">AdError</button>
+					   <button id="AdClickThru" type="button" class="btn btn-inactive vpaid-event">AdClickThru</button>
+				   </div>
+				   <div class="btn-group-vertical">
+					   <button id="AdVideoStart" type="button" class="btn btn-inactive vpaid-event">AdVideoStart</button>
+					   <button id="AdVideoFirstQuartile" type="button" class="btn btn-inactive vpaid-event">AdVideoFirstQuartile</button>
+					   <button id="AdVideoMidpoint" type="button" class="btn btn-inactive vpaid-event">AdVideoMidpoint</button>
+					   <button id="AdVideoThirdQuartile" type="button" class="btn btn-inactive vpaid-event">AdVideoThirdQuartile</button>
+					   <button id="AdVideoComplete" type="button" class="btn btn-inactive vpaid-event">AdVideoComplete</button>
+					   <button id="AdVolumeChange" type="button" class="btn btn-inactive vpaid-event">AdVolumeChange</button>
+					   <button id="AdExpandedChange" type="button" class="btn btn-inactive vpaid-event">AdExpandedChange</button>
+				   </div>
+				</div>
+				<div class="col-lg-6 right-side">
+					<div id="vpaid-container">
+						<div id="vpaid-ad"></div>
+					</div>
+				</div>
+            </div>
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="input-group input-group-lg">
+                        <p>Ad Tag:</p>
+                        <textarea id="ad-tag" style="width:600px; height: 60px;"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-2">
+                    <p>Resolution:</p>
+                    <input id="width-select" style="width: 40px;" value="400" />
+                    <input id="height-select" style="width: 40px;" value="300" />
+                    <input type="button" value="Set" onclick="adResize()" />
+                </div>
+                <div class="col-lg-2">
+                    <p>Volume:</p><input id="volume-select" style="width: 40px;" value="0" />
+                    <input type="button" value="Set" onclick="adVolume()" />
+                </div>
+                <div class="col-lg-2">
+                    <div>Time Elapsed:</div>
+                    <div id="playback-timer">0.00</div>
+                </div>
+                <div class="col-lg-2">
+                    <input type="button btn-green" class="btn btn-large btn-success" value="Start VPAID Ad" onclick="adLoad()" />
+                </div>
+            </div>
+       </div>
+       <div class="col-lg-1"></div>
+    </div>
+
+    <script type="text/javascript">
+      var vpaidAd = {};
+      vpaidjs.options.swfPath = "../dist/vpaidjs.swf";
+      vpaidjs.options.debug = true;
+
+
+      function adLoad() {
+        try {
+          vpaidAd.stopAd();
+        } catch(e) {}
+
+        $(".triggered").removeClass("triggered");
+        var timeElapsed = 0.00;
+        var playbackTimer;
+
+        vpaidAd = new VPAID("vpaid-ad", {
+          autoplay: true,
+          tag: $("#ad-tag").val(),
+          volume: $("#volume-select").val(),
+          success: function() {
+            var startTime = new Date().getTime();
+            playbackTimer = setInterval(function(e) {
+                timeElapsed = (new Date().getTime() - startTime);
+                $("#playback-timer").html((timeElapsed / 1000.0).toFixed(1));
+            }, 100);
+
+            // register event blinky lights
+            vpaidAd.on(vpaidjs.VPAIDEvents, function(e) {
+              $("#" + e.type.split(':')[1]).addClass("triggered").attr("title", timeElapsed);
+            });
+
+            vpaidAd.on("AdLoaded", function(e) {
+              $("button").not("#AdLoaded").removeClass("triggered");
+            });
+
+            vpaidAd.on("AdStopped", function(e) {
+              clearInterval(playbackTimer);
+            });
+          }
+        });
+      }
+
+      function adVolume() {
+        vpaidAd.volume($("#volume-select").val());
+      }
+
+      function adResize() {
+        $("#vpaid-container").width($("#width-select").val())
+                             .height($("#height-select").val());
+      }
+      adResize();
+    </script>
+</body></html>

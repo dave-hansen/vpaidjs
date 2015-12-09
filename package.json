@@ -1,7 +1,11 @@
 {
   "name": "vpaid.js",
-  "version": "0.1.1",
-  "description": "Javascript interface for VPAID ads.",
+  "version": "1.0.0",
+  "description": "VAST/VPAID video ad manager and Javascript interface.",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:dave-hansen/vpaidjs.git"
+  },
   "dependencies": {},
   "devDependencies": {
     "grunt": "^0.4.5",

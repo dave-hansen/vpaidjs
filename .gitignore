@@ -10,4 +10,5 @@
 *.iml
 
 # etc
+node_modules
 .DS_Store
