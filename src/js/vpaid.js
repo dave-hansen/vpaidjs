@@ -1,5 +1,6 @@
 // version 0.1.1a
 
+
 var vpaidjs = vpaidjs || {};
 
 // defaults
@@ -8,6 +9,9 @@ vpaidjs.options = {
   swfPath: "vpaidjs.swf",
   debug: false
 };
+
+vpaidjs.VPAIDEvents = ["AdReady", "AdLoading", "AdLoaded", "AdStarted", "AdPaused", "AdStopped", "AdLinearChange", "AdExpandedChange", "AdVolumeChange", "AdImpression", "AdVideoStart", "AdVideoFirstQuartile", "AdVideoMidpoint", "AdVideoThirdQuartile", "AdVideoComplete", "AdClickThru", "AdUserAcceptInvitation", "AdUserMinimize", "AdUserClose", "AdPlaying", "AdLog", "AdError", "AdSkipped", "AdSkippableStateChange", "AdSizeChange", "AdDurationChange", "AdInteraction"];
+vpaidjs.activeAds = {};
 
 var VPAID = function(playerId, options) {
   var player = this;
@@ -100,7 +104,7 @@ var VPAID = function(playerId, options) {
   };
 
   this.on = function(eventName, cb) {
-    $(document).on(eventName, "#" + playerId, cb);
+    player.ad.addEventListener(eventName, cb);
   };
 
   // now start it up
@@ -126,6 +130,9 @@ var VPAID = function(playerId, options) {
             if (typeof player.ad.initAd == "function") {
               clearInterval(loadCheck);
 
+              // add to list of active players
+              vpaidjs.activeAds[player.playerId] = player;
+
               if (typeof player.options.success == "function") {
                 player.options.success();
               }
@@ -135,6 +142,11 @@ var VPAID = function(playerId, options) {
       }
     }, 100);
   }
+
+
+  // TODO: is there an onDestroy() or whatever to remove completed ad from vpaidjs.activePlayers?
+  //       elsewise, will need to add a AdComplete event within object itself; hopefully doesn't override external one too?
+
 };
 
 vpaidjs.log = function(message) {
@@ -148,10 +160,14 @@ vpaidjs.log = function(message) {
 // in order to bridge events, actionscript objects arrive here as json strings,
 //   these are converted to javascript objects and sent on their way
 vpaidjs.triggerEvent = function(objectId, eventType, dataObj) {
-  $("#" + objectId).trigger(eventType, JSON.parse(dataObj));
+  var targetPlayer = window.document.getElementById(objectId);
+  var vpaidEvent = new CustomEvent(eventType, JSON.parse(dataObj));
+
+  targetPlayer.dispatchEvent(vpaidEvent);
+
+  //$("#" + objectId).trigger(eventType, JSON.parse(dataObj));
   vpaidjs.log("[vpaid.js] event: " + eventType);
 };
 
-var VPAIDEvents = ["AdReady", "AdLoading", "AdLoaded", "AdStarted", "AdPaused", "AdStopped", "AdLinearChange", "AdExpandedChange", "AdVolumeChange", "AdImpression", "AdVideoStart", "AdVideoFirstQuartile", "AdVideoMidpoint", "AdVideoThirdQuartile", "AdVideoComplete", "AdClickThru", "AdUserAcceptInvitation", "AdUserMinimize", "AdUserClose", "AdPlaying", "AdLog", "AdError", "AdSkipped", "AdSkippableStateChange", "AdSizeChange", "AdDurationChange", "AdInteraction"];
 
 var __vpaidjs__ = window.vpaidjs = vpaidjs;
