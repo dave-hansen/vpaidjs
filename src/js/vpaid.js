@@ -51,13 +51,29 @@ var VPAID = function(playerId, options) {
     player.ad.startAd();
   };
 
-  // these don't need paramters passed, so assign them blindly
-  this.stopAd = player.ad.stopAd;
-  this.skipAd = player.ad.skipAd;
-  this.pauseAd = player.ad.pauseAd;
-  this.resumeAd = player.ad.resumeAd;
-  this.expandAd = player.ad.expandAd;
-  this.collapseAd = player.ad.collapseAd;
+  this.stopAd = function() {
+    player.ad.stopAd();
+  };
+
+  this.skipAd = function() {
+    player.ad.skipAd();
+  };
+
+  this.pauseAd = function() {
+    player.ad.pauseAd();
+  };
+
+  this.resumeAd = function() {
+    player.ad.resumeAd();
+  };
+
+  this.expandAd = function() {
+    player.ad.expandAd();
+  };
+
+  this.collapseAd = function() {
+    player.ad.collapseAd();
+  };
 
   this.volume = function (level) {
     player.ad.volume(level);
@@ -71,7 +87,7 @@ var VPAID = function(playerId, options) {
   };
 
   this.on = function(eventName, cb) {
-    // gather all events into list
+    // also accept lists of events and space-delimited event strings
     var events = typeof eventName === "object" ? eventName : eventName.split(" ");
 
     for (i in events) {
@@ -79,7 +95,7 @@ var VPAID = function(playerId, options) {
     }
   };
 
-  // take extra care verifying SWF and ad fully ready
+  // utilities
   function onCreate(e) {
     if (!e.success || !e.ref) {
       vpaidjs.log("Failed to embed SWF.");
@@ -148,8 +164,7 @@ vpaidjs.log = function(message) {
   }
 };
 
-// in order to bridge events, actionscript objects arrive here as json strings,
-//   these are converted to javascript objects and sent on their way
+// TODO: document ExternalInterface bridge
 vpaidjs.triggerEvent = function(objectId, eventType, dataObj) {
   vpaidjs.log("[vpaid.js] event: " + eventType);
 
