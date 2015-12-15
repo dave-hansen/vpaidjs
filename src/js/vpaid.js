@@ -8,8 +8,7 @@ vpaidjs.options = {
   swfPath: "vpaidjs.swf",
   autoplay: false,
   debug: false
-}
-
+};
 vpaidjs.activeAds = {};
 
 var VPAID = function(playerId, options) {
@@ -73,15 +72,12 @@ var VPAID = function(playerId, options) {
 
   this.on = function(eventName, cb) {
     // gather all events into list
-    var events = typeof eventName === "object" ? eventName : eventName.replace(/\s/g, '').split(',');
+    var events = typeof eventName === "object" ? eventName : eventName.replace(/\s/g, ',').split();
 
     for (i in events) {
       player.ad.addEventListener(events[i], cb);
     }
   };
-
-  // now start it up
-  this.create();
 
   // take extra care verifying SWF and ad fully ready
   function onCreate(e) {
@@ -114,28 +110,35 @@ var VPAID = function(playerId, options) {
           // add to list of active players
           vpaidjs.activeAds[player.playerId] = player;
 
-          if (player.options.tag) {
-            player.initAd(player.options.tag);
-          }
-
-          if (player.options.autoplay) {
-            player.on("AdReady", function(e) {
-              player.startAd();
-            });
-          }
-
-          player.on("AdStopped", function(e) {
-            delete vpaidjs.activeAds[player.playerId];
-          });
-
-          if (typeof player.options.success == "function") {
-            player.options.success();
-          }
+          startEvents();
         }
       }
     }, 100);
   }
 
+  function startEvents() {
+    if (player.options.tag) {
+      player.initAd(player.options.tag);
+    }
+
+    if (player.options.autoplay) {
+      player.on("AdReady", function(e, data) {
+        debugger;
+        player.startAd();
+      });
+    }
+
+    player.on("AdStopped", function(e, data) {
+      delete vpaidjs.activeAds[player.playerId];
+    });
+
+    if (typeof player.options.success === "function") {
+      player.options.success();
+    }
+  }
+
+  // now start it up
+  this.create();
 };
 
 vpaidjs.log = function(message) {
@@ -152,7 +155,7 @@ vpaidjs.triggerEvent = function(objectId, eventType, dataObj) {
   vpaidjs.log("[vpaid.js] event: " + eventType);
 
   var targetPlayer = window.document.getElementById(objectId);
-  var vpaidEvent = new CustomEvent(eventType, JSON.parse(dataObj));
+  var vpaidEvent = new CustomEvent(eventType, { detail: JSON.parse(dataObj) });
 
   targetPlayer.dispatchEvent(vpaidEvent);
 };

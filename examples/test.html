@@ -35,8 +35,7 @@
       </div>
       <div style="margin-top: 10px;">
           Ad Tag: <input id="ad-tag" style="width: 500px;" value="">
-          <input type="button" value="Start" onclick="adSubmit()" />
-          <input type="button" value="Reload" onclick="adReload()" />
+          <input type="button" value="Load" onclick="adLoad()" />
       </div>
       <div style="margin-top: 10px">
         Resolution: <input id="width-select" style="width: 30px;" value="300" />
@@ -142,15 +141,17 @@
 
     var vpaidAd = {};
 
-    function adSubmit() {
+    function adLoad() {
       try {
         vpaidAd.stopAd();
       } catch(e) {}
 
+      $(".vpaid-event").removeClass("triggered");
       var adTag = $("#ad-tag").val();
+
       vpaidAd = new VPAID("vpaid-ad", {
-        tag: adTag,
         autoplay: true,
+        tag: adTag,
         success: function() {
           vpaidAd.on(vpaidjs.VPAIDEvents, function(e, data) {
             $("#" + e.type).addClass("triggered");
@@ -166,12 +167,6 @@
 
     function adVolume() {
       vpaidAd.volume($("#volume-select").val());
-    }
-
-    function adReload() {
-      $(".vpaid-event").removeClass("triggered");
-
-      adSubmit();
     }
 
 </script>
