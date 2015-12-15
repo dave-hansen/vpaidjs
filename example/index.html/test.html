@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <style type="text/css">
+        #container {
+          width: 300px;
+          height: 250px;
+          background-color: silver;
+        }
+    </style>
+
+    <script src="../src/js/vpaid.js"></script>
+    <script src="js/jquery-1.11.0.min.js"></script>
+    <script src="js/swfobject.js"></script>
+</head>
+<body>
+  <div id="container" style="">
+    <div id="vpaid-ad"></div>
+  </div>
+  <div style="margin-top: 10px;">
+      Ad Tag: <input id="ad-tag" style="width: 500px;" value="">
+      <input type="button" value="Start" onclick="tagSubmit()" />
+      <input type="button" value="Reload" onclick="reload()" />
+  </div>
+  <div style="margin-top: 10px">
+    Resolution: <input id="width-select" style="width: 30px;" value="300" />
+    <input id="height-select" style="width: 30px;" value="250" />
+    <input type="button" value="Set" onclick="resizeAd()" />
+  </div>
+  <div style="margin-top: 10px">
+    Volume: <input id="volume-select" style="width: 30px;" value="0.9" />
+    <input type="button" value="Set" onclick="setVolume()" />
+  </div>
+  <div id="info">
+      <div id="event-log">
+          Log:
+      </div>
+  </div>
+  <script type="text/javascript">
+    vpaidjs.options.swfPath = "../dist/vpaidjs.swf"
+    vpaidjs.options.debug = true;
+    var vpaidAd = new VPAID("vpaid-ad");
+
+    function tagSubmit(e) {
+      try {
+        vpaidAd.stopAd();
+      } catch(e) {}
+
+      var adTag = $("#ad-tag").val();
+      vpaidAd.initAd(adTag);
+    }
+
+    function resizeAd(e) {
+      $("#container").width($("#width-select").val())
+                     .height($("#height-select").val());
+    }
+
+    function setVolume(e) {
+      vpaidAd.volume($("#volume-select").val());
+    }
+
+    function reload(e) {
+      vpaidAd.stopAd();
+      vpaidAd.destroy();
+
+      vpaidAd = new VPAID("vpaid-ad");
+    }
+
+    vpaidAd.on("AdReady", function(e, data) {
+      vpaidAd.startAd();
+    });
+
+    vpaidAd.on("AdReady AdLoaded AdStarted AdPaused AdPlaying AdStopped AdImpression AdVideoFirstQuartile AdVideoMidpoint AdVideoMidpoint AdVideoThirdQuartile AdVideoComplete AdError", function(e, data) {
+      $("#event-log").append("<p>" + e.type + "</p>");
+    });
+
+    vpaidAd.on("AdLog", function(e, data) {
+       console.log("AdLog: " + data.data.message);
+    });
+
+</script>
+</body></html>
