@@ -1,5 +1,4 @@
-// version 0.1.1a
-
+// version 0.2a
 
 var vpaidjs = vpaidjs || {};
 
@@ -7,10 +6,10 @@ var vpaidjs = vpaidjs || {};
 vpaidjs.options = {
   volume: 0.8,
   swfPath: "vpaidjs.swf",
+  autoplay: false,
   debug: false
-};
+}
 
-vpaidjs.VPAIDEvents = ["AdReady", "AdLoading", "AdLoaded", "AdStarted", "AdPaused", "AdStopped", "AdLinearChange", "AdExpandedChange", "AdVolumeChange", "AdImpression", "AdVideoStart", "AdVideoFirstQuartile", "AdVideoMidpoint", "AdVideoThirdQuartile", "AdVideoComplete", "AdClickThru", "AdUserAcceptInvitation", "AdUserMinimize", "AdUserClose", "AdPlaying", "AdLog", "AdError", "AdSkipped", "AdSkippableStateChange", "AdSizeChange", "AdDurationChange", "AdInteraction"];
 vpaidjs.activeAds = {};
 
 var VPAID = function(playerId, options) {
@@ -38,73 +37,47 @@ var VPAID = function(playerId, options) {
       name: player.playerId
     };
 
-    swfobject.embedSWF(
-      player.options.swfPath,
-      player.playerId,
-      "100%",
-      "100%",
-      "10.5",
-      "",
-      flashvars,
-      params,
-      attributes,
-      onCreate
-    );
+    swfobject.embedSWF(player.options.swfPath, player.playerId, "100%", "100%", "10.5", "", flashvars, params, attributes, onCreate);
   };
 
-  /*
-   *  VPAID Protocol Methods
-   */
-
-  this.initAd = function(adTag) {
+  this.initAd = function (adTag) {
     player.ad.initAd(adTag, player.options.debug);
   };
 
-  this.startAd = function() {
-    player.ad.startAd();
-  };
-
-  this.resizeAd = function(x, y) {
+  this.resizeAd = function (x, y) {
     player.ad.resizeAd(x, y);
   };
 
-  this.stopAd = function() {
-    player.ad.stopAd();
+  this.startAd = function () {
+    player.ad.startAd();
   };
 
-  this.skipAd = function() {
-    player.ad.skipAd();
-  };
+  // these don't need paramters passed, so assign them blindly
+  this.stopAd = player.ad.stopAd;
+  this.skipAd = player.ad.skipAd;
+  this.pauseAd = player.ad.pauseAd;
+  this.resumeAd = player.ad.resumeAd;
+  this.expandAd = player.ad.expandAd;
+  this.collapseAd = player.ad.collapseAd;
 
-  this.pauseAd = function() {
-    player.ad.pauseAd();
-  };
-
-  this.resumeAd = function() {
-    player.ad.resumeAd();
-  };
-
-  this.expandAd = function() {
-    player.ad.expandAd();
-  };
-
-  this.collapseAd = function() {
-    player.ad.collapseAd();
-  };
-
-  this.volume = function(level) {
+  this.volume = function (level) {
     player.ad.volume(level);
   };
 
-  this.destroy = function() {
-    if (player.ad) {
+  this.destroy = function () {
+    if (typeof player.ad !== "undefined") {
       player.ad.stopAd();
     }
     swfobject.removeSWF(player.playerId);
   };
 
   this.on = function(eventName, cb) {
-    player.ad.addEventListener(eventName, cb);
+    // gather all events into list
+    var events = typeof eventName === "object" ? eventName : eventName.replace(/\s/g, '').split(',');
+
+    for (i in events) {
+      player.ad.addEventListener(events[i], cb);
+    }
   };
 
   // now start it up
@@ -112,40 +85,56 @@ var VPAID = function(playerId, options) {
 
   // take extra care verifying SWF and ad fully ready
   function onCreate(e) {
-    if (!e.success || !e.ref ) {
+    if (!e.success || !e.ref) {
       vpaidjs.log("Failed to embed SWF.");
       return false;
     }
+    waitForSwfObject(e);
+  }
 
-    // wait just a smidge for Flash to start
-    var readyCheck = setInterval(function () {
-      if (typeof e.ref.PercentLoaded === "function") {
-        clearInterval(readyCheck);
-        // timer to wait for swf object to fully load
-        var loadCheck = setInterval(function () {
-          vpaidjs.log(player.options.swfPath + " " + e.ref.PercentLoaded() + "% loaded." );
-          if (e.ref.PercentLoaded() === 100) {
-            player.ad = document.getElementById(player.playerId);
-
-            if (typeof player.ad.initAd == "function") {
-              clearInterval(loadCheck);
-
-              // add to list of active players
-              vpaidjs.activeAds[player.playerId] = player;
-
-              if (typeof player.options.success == "function") {
-                player.options.success();
-              }
-            }
-          }
-        }, 100);
+  function waitForSwfObject(e) {
+    var swfWait = setInterval(function () {
+      if (typeof e.ref.PercentLoaded !== "undefined" && e.ref.PercentLoaded()) {
+        clearInterval(swfWait);
+        waitForAdInterface(e);
       }
     }, 100);
   }
 
+  function waitForAdInterface(e) {
+    // timer to wait for swf object to fully load
+    var adWait = setInterval(function() {
+      vpaidjs.log(player.options.swfPath + " " + e.ref.PercentLoaded() + "% loaded.");
+      if (e.ref.PercentLoaded() === 100) {
+        player.ad = document.getElementById(player.playerId);
 
-  // TODO: is there an onDestroy() or whatever to remove completed ad from vpaidjs.activePlayers?
-  //       elsewise, will need to add a AdComplete event within object itself; hopefully doesn't override external one too?
+        if (typeof player.ad.initAd == "function") {
+          clearInterval(adWait);
+		
+          // add to list of active players
+          vpaidjs.activeAds[player.playerId] = player;
+
+          if (player.options.tag) {
+            player.initAd(player.options.tag);
+          }
+
+          if (player.options.autoplay) {
+            player.on("AdReady", function(e) {
+              player.startAd();
+            });
+          }
+
+          player.on("AdStopped", function(e) {
+            delete vpaidjs.activeAds[player.playerId];
+          });
+
+          if (typeof player.options.success == "function") {
+            player.options.success();
+          }
+        }
+      }
+    }, 100);
+  }
 
 };
 
@@ -160,14 +149,14 @@ vpaidjs.log = function(message) {
 // in order to bridge events, actionscript objects arrive here as json strings,
 //   these are converted to javascript objects and sent on their way
 vpaidjs.triggerEvent = function(objectId, eventType, dataObj) {
+  vpaidjs.log("[vpaid.js] event: " + eventType);
+
   var targetPlayer = window.document.getElementById(objectId);
   var vpaidEvent = new CustomEvent(eventType, JSON.parse(dataObj));
 
   targetPlayer.dispatchEvent(vpaidEvent);
-
-  //$("#" + objectId).trigger(eventType, JSON.parse(dataObj));
-  vpaidjs.log("[vpaid.js] event: " + eventType);
 };
 
+vpaidjs.VPAIDEvents = ["AdReady", "AdLoading", "AdLoaded", "AdStarted", "AdPaused", "AdStopped", "AdLinearChange", "AdExpandedChange", "AdVolumeChange", "AdImpression", "AdVideoStart", "AdVideoFirstQuartile", "AdVideoMidpoint", "AdVideoThirdQuartile", "AdVideoComplete", "AdClickThru", "AdUserAcceptInvitation", "AdUserMinimize", "AdUserClose", "AdPlaying", "AdLog", "AdError", "AdSkipped", "AdSkippableStateChange", "AdSizeChange", "AdDurationChange", "AdInteraction"];
 
 var __vpaidjs__ = window.vpaidjs = vpaidjs;
