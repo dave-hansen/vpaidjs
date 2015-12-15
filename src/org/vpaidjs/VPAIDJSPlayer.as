@@ -76,6 +76,9 @@ package org.vpaidjs {
             _vastController.addEventListener(VPAIDAdDisplayEvent.NON_LINEAR_LOADED, onLoaded);
             _vastController.addEventListener(VPAIDAdDisplayEvent.NON_LINEAR_COMPLETE, onComplete);
 
+            _vastController.addEventListener(NonLinearSchedulingEvent.SCHEDULE, onReady);
+            _vastController.addEventListener(StreamSchedulingEvent.SCHEDULE, onReady);
+
             registerExternalEvent(VPAIDAdDisplayEvent.LINEAR_LOADING, "AdLoading");
             registerExternalEvent(VPAIDAdDisplayEvent.NON_LINEAR_LOADING, "AdLoading");
             registerExternalEvent(VPAIDAdDisplayEvent.LINEAR_LOADED, "AdLoaded");
@@ -162,14 +165,15 @@ package org.vpaidjs {
         }
 
         protected function onStart(event:VPAIDAdDisplayEvent):void {
-            _ad = _vastController.getActiveVPAIDAd();
         }
 
         protected function onLoaded(event:VPAIDAdDisplayEvent):void {
         }
 
+        protected function onReady(event:*):void {
+        }
+
         protected function onComplete(event:VPAIDAdDisplayEvent):void {
-            _ad = new VPAIDBase();
         }
 
          // Named in the same format as the IAB-specified AS3 interfact, just drop the 'Ad' suffix
