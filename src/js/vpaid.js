@@ -72,7 +72,7 @@ var VPAID = function(playerId, options) {
 
   this.on = function(eventName, cb) {
     // gather all events into list
-    var events = typeof eventName === "object" ? eventName : eventName.replace(/\s/g, ',').split();
+    var events = typeof eventName === "object" ? eventName : eventName.split(" ");
 
     for (i in events) {
       player.ad.addEventListener(events[i], cb);
@@ -123,7 +123,6 @@ var VPAID = function(playerId, options) {
 
     if (player.options.autoplay) {
       player.on("AdReady", function(e, data) {
-        debugger;
         player.startAd();
       });
     }
