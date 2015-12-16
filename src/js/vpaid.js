@@ -17,10 +17,17 @@ var VPAID = function(playerId, options) {
 
   this.playerId = playerId;
   this.options = vpaidjs.options;
+  this.container = window.document.getElementById(playerId).parentElement;
 
   for (var option in options) {
-    player.options[option] = options[option];
+    this.options[option] = options[option];
   }
+
+  this.width = this.container.style.width.replace(/[^\d]/g, '') ||
+               this.container.width;
+
+  this.height = this.container.style.height.replace(/[^\d]/g, '') ||
+                this.container.parentElement.height;
 
   this.create = function() {
     var flashvars = {};
@@ -43,8 +50,11 @@ var VPAID = function(playerId, options) {
     player.ad.initAd(adTag, player.options.debug);
   };
 
-  this.resizeAd = function (x, y) {
-    player.ad.resizeAd(x, y);
+  this.resizeAd = function (width, height) {
+    player.ad.resizeAd(width, height);
+
+    player.width = width;
+    player.height = height;
   };
 
   this.startAd = function () {
@@ -139,13 +149,13 @@ var VPAID = function(playerId, options) {
 
     player.volume(player.options.volume);
 
-    player.on("AdStopped", function(e, data) {
+    player.on("AdStopped", function(e) {
       delete vpaidjs.activeAds[player.playerId];
     });
 
     if (player.options.autoplay) {
-      player.on("AdReady", function(e, data) {
-        player.resizeAd(player.ad.width, player.ad.height);
+      player.on("AdReady", function(e) {
+        player.resizeAd(player.width, player.height);   // hack so ads report their actual size
         player.startAd();
       });
     }
@@ -172,7 +182,9 @@ vpaidjs.triggerEvent = function(objectId, eventType, dataObj) {
   vpaidjs.log("[vpaid.js] event: " + eventType);
 
   var targetPlayer = window.document.getElementById(objectId);
-  var vpaidEvent = new CustomEvent(eventType, { detail: JSON.parse(dataObj) });
+
+  var vpaidEvent = document.createEvent("CustomEvent");
+  vpaidEvent.initCustomEvent(eventType, false, false, JSON.parse(dataObj));
 
   targetPlayer.dispatchEvent(vpaidEvent);
 };
