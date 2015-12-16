@@ -137,15 +137,17 @@ var VPAID = function(playerId, options) {
       player.initAd(player.options.tag);
     }
 
+    player.volume(player.options.volume);
+
+    player.on("AdStopped", function(e, data) {
+      delete vpaidjs.activeAds[player.playerId];
+    });
+
     if (player.options.autoplay) {
       player.on("AdReady", function(e, data) {
         player.startAd();
       });
     }
-
-    player.on("AdStopped", function(e, data) {
-      delete vpaidjs.activeAds[player.playerId];
-    });
 
     if (typeof player.options.success === "function") {
       player.options.success();

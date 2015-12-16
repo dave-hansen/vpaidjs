@@ -1,7 +1,18 @@
 <!DOCTYPE html>
 <head>
     <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" />
+
+    <script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+
     <style type="text/css">
         #container {
           width: 300px;
@@ -9,131 +20,78 @@
           background-color: silver;
         }
 
-
-        .vpaid-event {
-            background-color: lightgrey;
-        }
+        /*.vpaid-event {*/
+            /*background-color: lightgrey;*/
+        /*}*/
         .triggered {
             background-color: lightgreen;
+        }
+
+        div {
+            border: 1px dashed grey;
         }
 
     </style>
 
     <script src="../src/js/vpaid.js"></script>
-    <script src="js/jquery-1.11.0.min.js"></script>
-    <script src="js/swfobject.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js"></script>
 </head>
 <body>
 
-  <div class="col-md-2"></div>
+  <div class="row" style="height: 20px;"></div>
+  <div class="col-md-1"></div>
   <div class="col-md-8">
-    <div class="row">
 
-      <div id="container" style="">
-        <div id="vpaid-ad"></div>
-      </div>
-      <div style="margin-top: 10px;">
-          Ad Tag: <input id="ad-tag" style="width: 500px;" value="">
+    <div class="row">
+        <div class="col-md-6">
+
+          Ad Tag:<br>
+          <input id="ad-tag" style="width: auto;"
+                 value="http://ll.cdn.bitmedianetwork.com.s3.amazonaws.com/video/test/honey.xml" />
           <input type="button" value="Load" onclick="adLoad()" />
-      </div>
       <div style="margin-top: 10px">
         Resolution: <input id="width-select" style="width: 30px;" value="300" />
         <input id="height-select" style="width: 30px;" value="250" />
         <input type="button" value="Set" onclick="adResize()" />
       </div>
       <div style="margin-top: 10px">
-        Volume: <input id="volume-select" style="width: 30px;" value="0.9" />
+        Volume: <input id="volume-select" style="width: 30px;" value="0" />
         <input type="button" value="Set" onclick="adVolume()" />
       </div>
       <div>Time Elapsed:</div>
-    </div>
-    <div class="row"></div>
+        </div>
+        <div class="col-md-6">
+            <div class="btn-group-vertical">
+                <button id="AdReady" type="button" class="btn btn-inactive vpaid-event">AdReady</button>
+                <button id="AdLoading" type="button" class="btn btn-inactive vpaid-event">AdLoading</button>
+                <button id="AdLoaded" type="button" class="btn btn-inactive vpaid-event">AdLoaded</button>
+                <button id="AdStarted" type="button" class="btn btn-inactive vpaid-event">AdStarted</button>
+                <button id="AdPaused" type="button" class="btn btn-inactive vpaid-event">AdPaused</button>
+                <button id="AdStopped" type="button" class="btn btn-inactive vpaid-event">AdStopped</button>
+                <button id="AdError" type="button" class="btn btn-inactive vpaid-event">AdError</button>
+                <button id="AdClickThru" type="button" class="btn btn-inactive vpaid-event">AdClickThru</button>
+            </div>
 
-      <div id="AdReady" class="vpaid-event">
-          AdReady
-      </div>
-      <div id="AdLoading" class=vpaid-event>
-          AdLoading
-      </div>
-      <div id="AdLoaded" class="vpaid-event">
-          AdLoaded
-      </div>
-      <div id="AdStarted" class="vpaid-event">
-          AdStarted
-      </div>
-      <div id="AdPaused" class="vpaid-event">
-          AdPaused
-      </div>
-      <div id="AdStopped" class="vpaid-event">
-          AdStopped
-      </div>
-      <div id="AdLinearChange" class="vpaid-event">
-          AdLinearChange
-      </div>
-      <div id="AdExpandedChange" class="vpaid-event">
-          AdExpandedChange
-      </div>
-      <div id="AdVolumeChange" class="vpaid-event">
-          AdVolumeChange
-      </div>
-      <div id="AdImpression" class="vpaid-event">
-          AdImpression
-      </div>
-      <div id="AdVideoStart" class="vpaid-event">
-          AdVideoStart
-      </div>
-      <div id="AdVideoFirstQuartile" class="vpaid-event">
-          AdVideoFirstQuartile
-      </div>
-      <div id="AdVideoMidpoint" class="vpaid-event">
-          AdVideoMidpoint
-      </div>
-      <div id="AdVideoThirdQuartile" class="vpaid-event">
-          AdVideoThirdQuartile
-      </div>
-      <div id="AdVideoComplete" class="vpaid-event">
-          AdVideoComplete
-      </div>
-      <div id="AdClickThru" class="vpaid-event">
-          AdClickThru
-      </div>
-      <div id="AdUserAcceptInvitation" class="vpaid-event">
-          AdUserAcceptInvitation
-      </div>
-      <div id="AdUserMinimize" class="vpaid-event">
-          AdUserMinimize
-      </div>
-      <div id="AdUserClose" class="vpaid-event">
-          AdUserClose
-      </div>
-      <div id="AdPlaying" class="vpaid-event">
-          AdPlaying
-      </div>
-      <div id="AdLog" class="vpaid-event">
-          AdLog
-      </div>
-      <div id="AdError" class="vpaid-event">
-          AdError
-      </div>
-      <div id="AdSkipped" class="vpaid-event">
-          AdSkipped
-      </div>
-      <div id="AdSkippableStateChange" class="vpaid-event">
-          AdSkippableStateChange
-      </div>
-      <div id="AdSizeChange" class="vpaid-event">
-          AdSizeChange
-      </div>
-      <div id="AdDurationChange" class="vpaid-event">
-          AdDurationChange
-      </div>
-      <div id="AdInteraction" class="vpaid-event">
-          AdInteraction
-      </div>
+            <div class="btn-group-vertical">
+                <button id="AdImpression" type="button" class="btn btn-inactive vpaid-event">AdImpression</button>
+                <button id="AdVideoStart" type="button" class="btn btn-inactive vpaid-event">AdVideoStart</button>
+                <button id="AdVideoFirstQuartile" type="button" class="btn btn-inactive vpaid-event">AdVideoFirstQuartile</button>
+                <button id="AdVideoMidpoint" type="button" class="btn btn-inactive vpaid-event">AdVideoMidpoint</button>
+                <button id="AdVideoThirdQuartile" type="button" class="btn btn-inactive vpaid-event">AdVideoThirdQuartile</button>
+                <button id="AdVideoComplete" type="button" class="btn btn-inactive vpaid-event">AdVideoComplete</button>
+                <button id="AdVolumeChange" type="button" class="btn btn-inactive vpaid-event">AdVolumeChange</button>
+                <button id="AdExpandedChange" type="button" class="btn btn-inactive vpaid-event">AdExpandedChange</button>
+            </div>
+        </div>
     </div>
+      <div class="row" style="height: 100px;"></div>
+    <div class="row">
+        <div id="container">
+          <div id="vpaid-ad"></div>
+        </div>
+    </div>
+  </div>
 
-  <div class="col-md-2"></div>
   <script type="text/javascript">
 
     vpaidjs.options.swfPath = "../dist/vpaidjs.swf";
@@ -146,12 +104,12 @@
         vpaidAd.stopAd();
       } catch(e) {}
 
-      $(".vpaid-event").removeClass("triggered");
-      var adTag = $("#ad-tag").val();
+      $(".triggered").removeClass("triggered");
 
       vpaidAd = new VPAID("vpaid-ad", {
         autoplay: true,
-        tag: adTag,
+        tag: $("#ad-tag").val(),
+        volume: $("#volume-select").val(),
         success: function() {
           vpaidAd.on(vpaidjs.VPAIDEvents, function(e, data) {
             $("#" + e.type).addClass("triggered");
