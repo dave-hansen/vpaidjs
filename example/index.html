@@ -107,13 +107,11 @@
 
         var timeElapsed = 0.00;
 
-
         vpaidAd = new VPAID("vpaid-ad", {
           autoplay: true,
           tag: $("#ad-tag").val(),
           volume: $("#volume-select").val(),
           success: function() {
-
             var playbackTimer = setInterval(function (e) {
               timeElapsed += 0.01;
               $("#playback-timer").html(timeElapsed.toFixed(2));
@@ -125,10 +123,6 @@
 
             vpaidAd.on("AdStopped AdError", function(e, data) {
               clearInterval(playbackTimer);
-            });
-
-            vpaidAd.on("AdReady", function(e, data) {
-
             });
           }
         });
