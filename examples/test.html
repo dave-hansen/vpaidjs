@@ -31,36 +31,42 @@
             border: 1px dashed grey;
         }
 
+        .row {
+            padding: 10px;
+        }
+
+        div[class*="col-"] {
+            float: none;
+            display: table-cell;
+            text-align: top;
+        }
+
     </style>
 
     <script src="../src/js/vpaid.js"></script>
     <script src="//ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js"></script>
 </head>
 <body>
-
-  <div class="row" style="height: 20px;"></div>
-  <div class="col-md-1"></div>
-  <div class="col-md-8">
+  <div class="col-lg-1"></div>
+  <div class="col-lg-8">
 
     <div class="row">
-        <div class="col-md-6">
-
-          Ad Tag:<br>
-          <input id="ad-tag" style="width: auto;"
-                 value="http://ll.cdn.bitmedianetwork.com.s3.amazonaws.com/video/test/honey.xml" />
-          <input type="button" value="Load" onclick="adLoad()" />
-      <div style="margin-top: 10px">
-        Resolution: <input id="width-select" style="width: 30px;" value="300" />
-        <input id="height-select" style="width: 30px;" value="250" />
-        <input type="button" value="Set" onclick="adResize()" />
-      </div>
-      <div style="margin-top: 10px">
-        Volume: <input id="volume-select" style="width: 30px;" value="0" />
-        <input type="button" value="Set" onclick="adVolume()" />
-      </div>
-      <div>Time Elapsed:</div>
+      <div class="col-lg-6 left-side">
+        <div class="row">
+            <p>Resolution:</p>
+            <input id="width-select" style="width: 40px;" value="300" />
+            <input id="height-select" style="width: 40px;" value="250" />
+            <input type="button" value="Set" onclick="adResize()" />
+          </div>
+          <div class="row">
+            <p>Volume:</p><input id="volume-select" style="width: 40px;" value="0" />
+            <input type="button" value="Set" onclick="adVolume()" />
+            </div>
+          <div class="row">
+            <div>Time Elapsed:</div>
+          </div>
         </div>
-        <div class="col-md-6">
+        <div class="col-lg-6 right-side">
             <div class="btn-group-vertical">
                 <button id="AdReady" type="button" class="btn btn-inactive vpaid-event">AdReady</button>
                 <button id="AdLoading" type="button" class="btn btn-inactive vpaid-event">AdLoading</button>
@@ -84,10 +90,19 @@
             </div>
         </div>
     </div>
-      <div class="row" style="height: 100px;"></div>
+    <div class="row" >
+        <div class="col-lg-8">
+          <p>Ad Tag:</p>
+          <input id="ad-tag" style="width: 100%;;"
+                 value="http://ll.cdn.bitmedianetwork.com.s3.amazonaws.com/video/test/honey.xml" />
+          <input type="button" value="Load" onclick="adLoad()" />
+        </div>
+   </div>
     <div class="row">
-        <div id="container">
-          <div id="vpaid-ad"></div>
+        <div class="col-lg-8">
+            <div id="container">
+              <div id="vpaid-ad"></div>
+            </div>
         </div>
     </div>
   </div>
@@ -124,6 +139,7 @@
     }
 
     function adVolume() {
+        debugger;
       vpaidAd.volume($("#volume-select").val());
     }
 

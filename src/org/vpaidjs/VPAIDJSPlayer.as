@@ -21,6 +21,8 @@ package org.vpaidjs {
     import flash.display.StageAlign;
     import flash.display.StageScaleMode;
     import flash.external.ExternalInterface;
+    import flash.external.ExternalInterface;
+    import flash.utils.describeType;
     import flash.system.Security;
 
     import org.openvideoads.vast.VASTController;
@@ -34,9 +36,10 @@ package org.vpaidjs {
     import org.openvideoads.vpaid.IVPAID;
     import org.openvideoads.vpaid.VPAIDBase;
     import org.openvideoads.util.DisplayProperties;
+import org.openvideoads.vpaid.VPAIDEvent;
 
-    public class VPAIDJSPlayer extends Sprite implements ConfigLoadListener {
-        private var _version:String = "0.2";
+public class VPAIDJSPlayer extends Sprite implements ConfigLoadListener {
+        private var _version:String = "0.2a";
 
         private var _ad:IVPAID = new VPAIDBase();
         private var _vastController:VASTController;
