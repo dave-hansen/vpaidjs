@@ -145,6 +145,7 @@ var VPAID = function(playerId, options) {
 
     if (player.options.autoplay) {
       player.on("AdReady", function(e, data) {
+        player.resizeAd(player.ad.width, player.ad.height);
         player.startAd();
       });
     }
