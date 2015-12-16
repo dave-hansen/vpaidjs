@@ -36,7 +36,7 @@ package org.vpaidjs {
     import org.openvideoads.util.DisplayProperties;
 
     public class VPAIDJSPlayer extends Sprite implements ConfigLoadListener {
-        private var _version:String = "0.1.1b";
+        private var _version:String = "0.2";
 
         private var _ad:IVPAID = new VPAIDBase();
         private var _vastController:VASTController;
