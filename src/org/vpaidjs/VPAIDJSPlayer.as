@@ -229,8 +229,7 @@ public class VPAIDJSPlayer extends Sprite implements ConfigLoadListener {
                         tag: adTag,
                         position: "pre-roll"    // for OVA's sake, treat all as pre-roll
                     }]
-                },
-                canFireAPICalls: false
+                }
             };
 
             if (debug == true) {
