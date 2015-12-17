@@ -21,8 +21,8 @@ package org.vpaidjs {
     import flash.display.StageAlign;
     import flash.display.StageScaleMode;
     import flash.external.ExternalInterface;
-    import flash.external.ExternalInterface;
-    import flash.utils.describeType;
+    import flash.media.SoundMixer;
+    import flash.media.SoundTransform;
     import flash.system.Security;
 
     import org.openvideoads.vast.VASTController;
@@ -200,10 +200,18 @@ public class VPAIDJSPlayer extends Sprite implements ConfigLoadListener {
          */
 
         public function jsVolume(level:Number):void {
+            // ads find the funniest ways to unmute themselves, so turn it off at a low level when muted
+            if (level == 0) {
+                SoundMixer.soundTransform = new SoundTransform(0);
+            } else {
+                SoundMixer.soundTransform = new SoundTransform(1);
+            }
+
             if (_ad != null) {
                 _ad.adVolume = level;
-                _playerVolume = level;
             }
+
+            _playerVolume = level;
         }
 
         //  Request, load, and prepare Flash ad
