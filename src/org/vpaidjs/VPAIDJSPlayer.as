@@ -202,8 +202,9 @@ public class VPAIDJSPlayer extends Sprite implements ConfigLoadListener {
 
         public function jsVolume(level:Number):void {
             _playerVolume = level;
-            if (_ad != null) {
-                _ad.adVolume = level;
+            if (_vastController != null) {
+                _vastController.playerVolume = level;
+//                _ad.adVolume = level;
             }
         }
 

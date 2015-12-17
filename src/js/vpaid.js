@@ -23,6 +23,7 @@ var VPAID = function(playerId, options) {
     this.options[option] = options[option];
   }
 
+  this.volumeLevel = this.options.volume;
   this.width = this.container.style.width.replace(/[^\d]/g, '') ||
                this.container.width;
 
@@ -87,6 +88,8 @@ var VPAID = function(playerId, options) {
 
   this.volume = function (level) {
     player.ad.volume(level);
+
+    player.volumeLevel = level;
   };
 
   this.destroy = function () {
@@ -147,18 +150,26 @@ var VPAID = function(playerId, options) {
       player.initAd(player.options.tag);
     }
 
-    player.volume(player.options.volume);
-
-    player.on("AdStopped", function(e) {
-      delete vpaidjs.activeAds[player.playerId];
-    });
+    //player.volume(player.options.volume);
 
     if (player.options.autoplay) {
       player.on("AdReady", function(e) {
         player.resizeAd(player.width, player.height);   // hack so ads report their actual size
+        player.volume(player.options.volume);
+
         player.startAd();
+        //player.volume(player.options.volume);
       });
     }
+
+    player.on("AdLoaded AdStarted AdVideoStart", function(e) {
+      //player.volume(player.options.volume);
+      //player.volume(player.options.volume);
+    });
+
+    player.on("AdStopped", function(e) {
+      delete vpaidjs.activeAds[player.playerId];
+    });
 
     if (typeof player.options.success === "function") {
       player.options.success();
