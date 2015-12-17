@@ -156,11 +156,14 @@ var VPAID = function(playerId, options) {
     if (player.options.autoplay) {
       player.on("AdReady", function(e) {
         player.resizeAd(player.width, player.height);   // hack so ads report their actual size
-        player.volume(player.options.volume);
-
         player.startAd();
       });
     }
+
+    // you never know when sound gets turned on
+    player.on("AdLoaded AdStarted AdVideoStart", function(e) {
+      player.volume(player.options.volume);
+    });
 
     player.on("AdStopped", function(e) {      // AdError too?
       delete vpaidjs.activeAds[player.playerId];
