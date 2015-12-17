@@ -79,9 +79,6 @@ public class VPAIDJSPlayer extends Sprite implements ConfigLoadListener {
             _vastController.addEventListener(VPAIDAdDisplayEvent.NON_LINEAR_LOADED, onLoaded);
             _vastController.addEventListener(VPAIDAdDisplayEvent.NON_LINEAR_COMPLETE, onComplete);
 
-            _vastController.addEventListener(NonLinearSchedulingEvent.SCHEDULE, onReady);
-            _vastController.addEventListener(StreamSchedulingEvent.SCHEDULE, onReady);
-
             registerExternalEvent(VPAIDAdDisplayEvent.LINEAR_LOADING, "AdLoading");
             registerExternalEvent(VPAIDAdDisplayEvent.NON_LINEAR_LOADING, "AdLoading");
             registerExternalEvent(VPAIDAdDisplayEvent.LINEAR_LOADED, "AdLoaded");
@@ -167,16 +164,16 @@ public class VPAIDJSPlayer extends Sprite implements ConfigLoadListener {
             });
         }
 
+
+        protected function onLoaded(event:VPAIDAdDisplayEvent):void {
+            _ad = _vastController.getActiveVPAIDAd();
+        }
+
         protected function onStart(event:VPAIDAdDisplayEvent):void {
         }
 
-        protected function onLoaded(event:VPAIDAdDisplayEvent):void {
-        }
-
-        protected function onReady(event:*):void {
-        }
-
         protected function onComplete(event:VPAIDAdDisplayEvent):void {
+            _ad = new VPAIDBase();
         }
 
          // Named in the same format as the IAB-specified AS3 interfact, just drop the 'Ad' suffix
@@ -193,7 +190,9 @@ public class VPAIDJSPlayer extends Sprite implements ConfigLoadListener {
                 ExternalInterface.addCallback("collapseAd", jsCollapseAd);
                 ExternalInterface.addCallback("volume", jsVolume);
             }
-            catch (e:Error) {}
+            catch (e:Error) {
+                ExternalInterface.call("console.log", "[vpaidjs.swf] exception registering external callbacks.");
+            }
         }
 
         /**
@@ -201,14 +200,13 @@ public class VPAIDJSPlayer extends Sprite implements ConfigLoadListener {
          */
 
         public function jsVolume(level:Number):void {
-            _playerVolume = level;
-            if (_vastController != null) {
-                _vastController.playerVolume = level;
-//                _ad.adVolume = level;
+            if (_ad != null) {
+                _ad.adVolume = level;
+                _playerVolume = level;
             }
         }
 
-        //  Request, load, and prepare Flash adw
+        //  Request, load, and prepare Flash ad
         public function jsInitAd(adTag:String, debug:Boolean):void {
             _vastController = new VASTController();
             _vastController.startStreamSafetyMargin = 100;
@@ -267,7 +265,7 @@ public class VPAIDJSPlayer extends Sprite implements ConfigLoadListener {
 
         public function jsResizeAd(width:Number, height:Number):void {
             if(_vastController != null && _display != null) {
-                // TODO: resize AND scale, but not beyond the initial values; re-align to center if you're really cool
+                // TODO: re-align to center if you're really cool
                 _display.displayWidth = width;
                 _display.displayHeight = height;
 

@@ -104,22 +104,21 @@
         } catch(e) {}
 
         $(".triggered").removeClass("triggered");
-
         var timeElapsed = 0.00;
 
         vpaidAd = new VPAID("vpaid-ad", {
           autoplay: true,
           tag: $("#ad-tag").val(),
-//          volume: $("#volume-select").val(),
-            volume: 0,
+          volume: $("#volume-select").val(),
           success: function() {
+            var startTime = new Date().getTime();
             var playbackTimer = setInterval(function (e) {
-              timeElapsed += 0.01;
-              $("#playback-timer").html(timeElapsed.toFixed(2));
+              timeElapsed = (new Date().getTime() - startTime);
+              $("#playback-timer").html((timeElapsed / 1000.0).toFixed(2));
             }, 10);
 
             vpaidAd.on(vpaidjs.VPAIDEvents, function(e) {
-              $("#" + e.type).addClass("triggered").attr("title", timeElapsed.toFixed(2));
+              $("#" + e.type).addClass("triggered").attr("title", timeElapsed);
             });
 
             vpaidAd.on("AdStopped AdError", function(e) {
