@@ -23,6 +23,7 @@ var VPAID = function(playerId, options) {
     this.options[option] = options[option];
   }
 
+  this.adVolume = this.options.volume;
   this.width = this.container.style.width.replace(/[^\d]/g, '') ||
                this.container.width;
 
@@ -87,6 +88,8 @@ var VPAID = function(playerId, options) {
 
   this.volume = function (level) {
     player.ad.volume(level);
+
+    player.adVolume = level;
   };
 
   this.destroy = function () {
@@ -147,18 +150,21 @@ var VPAID = function(playerId, options) {
       player.initAd(player.options.tag);
     }
 
-    player.volume(player.options.volume);
-
-    player.on("AdStopped", function(e) {
-      delete vpaidjs.activeAds[player.playerId];
-    });
-
     if (player.options.autoplay) {
       player.on("AdReady", function(e) {
         player.resizeAd(player.width, player.height);   // hack so ads report their actual size
         player.startAd();
       });
     }
+
+    // enforce default sound setting, no matter how playback is triggered
+    player.on("AdLoaded AdStarted AdVideoStart", function(e) {
+      player.volume(player.adVolume);
+    });
+
+    player.on("AdStopped", function(e) {      // AdError too?
+      delete vpaidjs.activeAds[player.playerId];
+    });
 
     if (typeof player.options.success === "function") {
       player.options.success();
