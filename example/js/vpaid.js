@@ -158,7 +158,7 @@ var VPAID = function(playerId, options) {
     }
 
     // enforce default sound setting, no matter how playback is triggered
-    player.on("AdLoaded AdStarted AdVideoStart", function(e) {
+    player.on("AdReady AdLoaded AdStarted AdImpression AdVideoStart", function(e) {
       player.volume(player.adVolume);
     });
 
