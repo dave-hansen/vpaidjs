@@ -118,7 +118,7 @@
             }, 10);
 
             vpaidAd.on(vpaidjs.VPAIDEvents, function(e) {
-              $("#" + e.type).addClass("triggered").attr("title", timeElapsed);
+              $("#" + e.type.split(':')[1]).addClass("triggered").attr("title", timeElapsed);
             });
 
             vpaidAd.on("AdStopped AdError", function(e) {

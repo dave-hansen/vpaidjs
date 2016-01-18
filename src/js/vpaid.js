@@ -7,13 +7,16 @@ vpaidjs.options = {
   volume: 0.8,
   swfPath: "vpaidjs.swf",
   autoplay: false,
+  callbacks: false,
   debug: false
 };
 vpaidjs.activeAds = {};
 
 var VPAID = function(playerId, options) {
   var player = this;
-  this.ad = new Object();
+
+  this.ad = {};
+  this.registeredEvents = [];
 
   this.playerId = playerId;
   this.options = vpaidjs.options;
@@ -43,7 +46,7 @@ var VPAID = function(playerId, options) {
       name: player.playerId
     };
 
-    swfobject.embedSWF(player.options.swfPath, player.playerId, "100%", "100%", "10.5", "", flashvars, params, attributes, onCreate);
+    swfobject.embedSWF(player.options.swfPath, player.playerId, this.width, this.height, "10.5", "", flashvars, params, attributes, onCreate);
   };
 
   this.initAd = function (adTag) {
@@ -51,10 +54,10 @@ var VPAID = function(playerId, options) {
   };
 
   this.resizeAd = function (width, height) {
-    player.ad.resizeAd(width, height);
+      player.ad.resizeAd(width, height);
 
-    player.width = width;
-    player.height = height;
+      player.width = width;
+      player.height = height;
   };
 
   this.startAd = function () {
@@ -87,24 +90,34 @@ var VPAID = function(playerId, options) {
 
   this.volume = function (level) {
     player.ad.volume(level);
-
-    player.adVolume = level;
   };
 
   this.destroy = function () {
-    if (typeof player.ad !== "undefined") {
-      player.ad.stopAd();
+    for (var i in player.registeredEvents) {
+      var eventName = player.registeredEvents[i][0];
+      var cb = player.registeredEvents[i][1];
+
+      document.removeEventListener(eventName, cb);
     }
+
     swfobject.removeSWF(player.playerId);
+    delete vpaidjs.activeAds[player.playerId];
   };
 
   this.on = function(eventName, cb) {
     // also accept lists of events and space-delimited event strings
     var events = typeof eventName === "object" ? eventName : eventName.split(" ");
 
-    for (i in events) {
-      player.ad.addEventListener(events[i], cb);
+    for (var i in events) {
+      var nsEvent = player.playerId + ':' + events[i];
+
+      document.addEventListener(nsEvent, cb);
+      player.registeredEvents.push([nsEvent, cb]);
     }
+  };
+
+  this.trigger = function(eventName) {
+    player.ad.trigger(eventName);
   };
 
   // utilities
@@ -132,23 +145,18 @@ var VPAID = function(playerId, options) {
       if (e.ref.PercentLoaded() === 100) {
         player.ad = document.getElementById(player.playerId);
 
-        if (typeof player.ad.initAd == "function") {
-          clearInterval(adWait);
-		
-          // add to list of active players
-          vpaidjs.activeAds[player.playerId] = player;
+        // add to list of active players
+        vpaidjs.activeAds[player.playerId] = player;
 
-          startEvents();
+        if (typeof player.ad.initAd === "function") {
+          clearInterval(adWait);
+          onAdInit();
         }
       }
     }, 100);
   }
 
-  function startEvents() {
-    if (typeof player.options.success === "function") {
-      player.options.success();
-    }
-
+  function onAdInit() {
     if (player.options.tag) {
       player.initAd(player.options.tag);
     }
@@ -165,9 +173,9 @@ var VPAID = function(playerId, options) {
       player.volume(player.options.volume);
     });
 
-    player.on("AdStopped", function(e) {      // AdError too?
-      delete vpaidjs.activeAds[player.playerId];
-    });
+    if (typeof player.options.success === "function") {
+      player.options.success();
+    }
   }
 
   // now start it up
@@ -182,18 +190,15 @@ vpaidjs.log = function(message) {
   }
 };
 
-// TODO: document ExternalInterface bridge
 vpaidjs.triggerEvent = function(objectId, eventType, dataObj) {
   vpaidjs.log("[vpaid.js] event: " + eventType);
 
-  var targetPlayer = window.document.getElementById(objectId);
+  var nsEvent = objectId + ':' + eventType;
+  var vpaidEvent = new CustomEvent(nsEvent, { detail: JSON.parse(dataObj) });
 
-  var vpaidEvent = document.createEvent("CustomEvent");
-  vpaidEvent.initCustomEvent(eventType, false, false, JSON.parse(dataObj));
-
-  targetPlayer.dispatchEvent(vpaidEvent);
+  document.dispatchEvent(vpaidEvent);
 };
 
 vpaidjs.VPAIDEvents = ["AdReady", "AdLoading", "AdLoaded", "AdStarted", "AdPaused", "AdStopped", "AdLinearChange", "AdExpandedChange", "AdVolumeChange", "AdImpression", "AdVideoStart", "AdVideoFirstQuartile", "AdVideoMidpoint", "AdVideoThirdQuartile", "AdVideoComplete", "AdClickThru", "AdUserAcceptInvitation", "AdUserMinimize", "AdUserClose", "AdPlaying", "AdLog", "AdError", "AdSkipped", "AdSkippableStateChange", "AdSizeChange", "AdDurationChange", "AdInteraction"];
 
-var __vpaidjs__ = window.vpaidjs = vpaidjs;
+window.vpaidjs = vpaidjs;
