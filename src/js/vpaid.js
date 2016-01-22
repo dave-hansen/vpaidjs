@@ -54,10 +54,10 @@ var VPAID = function(playerId, options) {
   };
 
   this.resizeAd = function (width, height) {
-      player.ad.resizeAd(width, height);
+    player.ad.resizeAd(width, height);
 
-      player.width = width;
-      player.height = height;
+    player.width = width;
+    player.height = height;
   };
 
   this.startAd = function () {
@@ -114,10 +114,6 @@ var VPAID = function(playerId, options) {
       document.addEventListener(nsEvent, cb);
       player.registeredEvents.push([nsEvent, cb]);
     }
-  };
-
-  this.trigger = function(eventName) {
-    player.ad.trigger(eventName);
   };
 
   // utilities
