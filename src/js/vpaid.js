@@ -7,14 +7,12 @@ vpaidjs.options = {
   volume: 0.8,
   swfPath: "vpaidjs.swf",
   autoplay: false,
-  callbacks: false,
   debug: false
 };
 vpaidjs.activeAds = {};
 
 var VPAID = function(playerId, options) {
   var player = this;
-
   this.ad = {};
   this.registeredEvents = [];
 
