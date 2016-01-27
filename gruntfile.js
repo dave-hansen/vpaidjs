@@ -7,7 +7,7 @@ module.exports = function(grunt) {
       vpaidjs_swf: {
         options: {
           bin: "mxmlc",
-          rawConfig: "-source-path ./src ./ova.as3/src -library-path+=./ova.as3/lib/as3corelib.swc -debug=false -warnings=false -strict=true -optimize=true -incremental=false -define+=CONFIG::debugging,false -define+=CONFIG::ga,false -define+=CONFIG::connectors,false -define+=CONFIG::callbacks,true -define+=CONFIG::buttons,false -define+=CONFIG::javascript,true -define+=CONFIG::release,true"
+          rawConfig: "-source-path ./src ./ova.as3/src -debug=false -warnings=false -strict=true -optimize=true -incremental=false -define+=CONFIG::debugging,false -define+=CONFIG::ga,false -define+=CONFIG::connectors,false -define+=CONFIG::callbacks,true -define+=CONFIG::buttons,false -define+=CONFIG::javascript,true -define+=CONFIG::release,true"
         },
         files: {
          "dist/vpaidjs.swf": "src/VPAIDJS.as"
