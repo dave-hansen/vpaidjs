@@ -169,6 +169,9 @@ package org.vpaidjs {
                         "",
                         ""
                     );
+
+                    // TODO XXX: don't hack to use ExternalInterface here...
+                    ExternalInterface.call("vpaidjs.triggerEvent", ExternalInterface.objectID, "AdReady", "{}");
                 }
             }
         }
@@ -189,8 +192,10 @@ package org.vpaidjs {
 
             // these callbacks are required or else NetConnection will blow up on you
             ns.client = {};
-            ns.client.onMetaData = function() {};
             ns.client.onCuePoint = function() {};
+            ns.client.onMetaData = function(info:Object) {
+                // TODO: calculate quartile reporting using `info.duration`
+            };
 
             vastVideo.attachNetStream(ns);
             ns.play(adTag);
@@ -232,6 +237,10 @@ package org.vpaidjs {
 
 
             // TODO XXX: what other pings?
+        }
+
+        private function registerVastTrackingEvents() {
+
         }
 
 
@@ -329,11 +338,13 @@ package org.vpaidjs {
 
 
         public function jsResizeAd(width:Number, height:Number):void {
-            _display.width = width;
-            _display.height = height;
+            if (_ad && _display) {
+                _display.width = width;
+                _display.height = height;
 
-            _ad.resizeAd(_display);
-            // TODO: handle VAST
+                _ad.resizeAd(width, height, "normal");
+                // TODO: handle VAST
+            }
         }
 
 
