@@ -200,16 +200,20 @@ package org.vpaidjs {
 
                 if (event.info.code == "NetStream.Play.Start") {
                     // TODO: ping on playback start to `Impression`
+                    var impressionRequest:URLRequest = new URLRequest("http://localhost");
+                    var impressionRequestLoader:URLLoader = new URLLoader();
+                    impressionRequestLoader.load(impressionRequest);
+
                 } else if (event.info.code == "NetStream.Play.Stop") {
+                    // TODO ?
                 }
             });
 
             _ad.addEventListener(MouseEvent.CLICK, function (event:MouseEvent):void {
 
-                // VAST ClickThru event
-
                 if (!isPaused) {
                     isPaused = true;
+                    // VAST ClickThru event
 
                     var clickThru:URLRequest = new URLRequest("http://www.utorrent.com");
                     navigateToURL(clickThru, "_blank");
@@ -222,8 +226,6 @@ package org.vpaidjs {
 
             // TODO XXX: smart to have?
             _ad.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, function (event:UncaughtErrorEvent):void {
-                ExternalInterface.call("console.log", "unhandled exception: [" + event.type +"]: " + event.text);
-
                 event.preventDefault();
                 event.stopImmediatePropagation();
             });
@@ -234,6 +236,7 @@ package org.vpaidjs {
 
 
         private static function triggerExternalEvent(event:Event):void {
+            // TODO: end some add data
             ExternalInterface.call("vpaidjs.triggerEvent", ExternalInterface.objectID, event.type, "{}");
         }
 
@@ -261,10 +264,10 @@ package org.vpaidjs {
         // TODO any need for a debug flag anymore?
         public function jsInitAd(adTag:String, debug:Boolean):void {
             var parser:VASTParser = new VASTParser();
-            var urlRequest:URLRequest = new URLRequest(adTag);
-            var urlLoader:URLLoader = new URLLoader();
+            var adTagRequest:URLRequest = new URLRequest(adTag);
+            var adTagRequestLoader:URLLoader = new URLLoader();
 
-            urlLoader.addEventListener(Event.COMPLETE, function urlLoader_complete(event:Event):void {
+            adTagRequestLoader.addEventListener(Event.COMPLETE, function adTagLoader_complete(event:Event):void {
                 parser.setData(XML(event.currentTarget.data));
                 _vastResponse = parser.parse();
 
@@ -287,7 +290,7 @@ package org.vpaidjs {
                 // TODO: actually iterate
             });
 
-            urlLoader.load(urlRequest);
+            adTagRequestLoader.load(adTagRequest);
         }
 
 
