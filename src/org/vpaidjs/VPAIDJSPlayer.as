@@ -18,25 +18,24 @@
 package org.vpaidjs {
     import flash.display.DisplayObject;
     import flash.display.Loader;
-import flash.display.MovieClip;
-import flash.display.Sprite;
+    import flash.display.MovieClip;
+    import flash.display.Sprite;
     import flash.display.StageAlign;
     import flash.display.StageScaleMode;
     import flash.events.Event;
-    import flash.events.IOErrorEvent;
-import flash.events.MouseEvent;
-import flash.events.NetStatusEvent;
-import flash.events.UncaughtErrorEvent;
-import flash.external.ExternalInterface;
+    import flash.events.MouseEvent;
+    import flash.events.NetStatusEvent;
+    import flash.events.UncaughtErrorEvent;
+    import flash.external.ExternalInterface;
     import flash.media.SoundMixer;
     import flash.media.SoundTransform;
-import flash.media.Video;
-import flash.net.NetConnection;
-import flash.net.NetStream;
-import flash.net.URLLoader;
+    import flash.media.Video;
+    import flash.net.NetConnection;
+    import flash.net.NetStream;
+    import flash.net.URLLoader;
     import flash.net.URLRequest;
-import flash.net.navigateToURL;
-import flash.system.ApplicationDomain;
+    import flash.net.navigateToURL;
+    import flash.system.ApplicationDomain;
     import flash.system.LoaderContext;
     import flash.system.Security;
     import flash.system.SecurityDomain;
@@ -87,13 +86,14 @@ import flash.system.ApplicationDomain;
         }
 
 
-        private function createFlashLoader(adTag:String):void {
+        private function createFlashLoader(adTag:String, adData:Object):void {
             if (_loader) {
                 // TODO: XXX does this actually do anything?
                 _loader.unload();
             }
             _loader = new Loader();
 
+            // TODO: XXX does this actually work?
             loaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, function (event:UncaughtErrorEvent):void {
                 ExternalInterface.call("console.log", "unhandled exception: [" + event.type +"]: " + event.text);
 
@@ -118,7 +118,6 @@ import flash.system.ApplicationDomain;
                 new LoaderContext(false, ApplicationDomain.currentDomain, SecurityDomain.currentDomain)
             );
         }
-
 
         private function initiateFlashAd():void {
             if (_ad) {
@@ -175,13 +174,14 @@ import flash.system.ApplicationDomain;
         }
 
 
-        private function startVideoPlayback(url:String) {
-            var _ad:MovieClip = new MovieClip();
+        private function startVideoPlayback(adTag:String, adData:Object) {
+            _ad = new MovieClip();
             var vastVideo:Video = new Video(stage.stageWidth, stage.stageHeight);
-            var isPlaying:Boolean = false;
+            var isPaused:Boolean = false;
 
             _ad.addChild(vastVideo);
-            addChild(_ad);
+            _display = _ad as DisplayObject;
+            addChild(_display);
 
             var nc:NetConnection = new NetConnection();
             nc.connect(null);
@@ -193,37 +193,37 @@ import flash.system.ApplicationDomain;
             ns.client.onCuePoint = function() {};
 
             vastVideo.attachNetStream(ns);
-            ns.play(url);
+            ns.play(adTag);
 
             ns.addEventListener(NetStatusEvent.NET_STATUS, function (event:NetStatusEvent):void {
                 // TODO XXX: is there an obvious event on playback start?
 
-                ExternalInterface.call("console.log", "event: " + event.info.description);
-                if (event.info.code == "NetStream.Play.Start" || event.info.description == "Unpausing") {
-                    isPlaying = true;
-
+                if (event.info.code == "NetStream.Play.Start") {
                     // TODO: ping on playback start to `Impression`
-
-                } else if (event.info.description == "Pausing") {
-                    isPlaying = false;
-                } else {
-                    ExternalInterface.call("console.log", "code: " + event.info.code);
+                } else if (event.info.code == "NetStream.Play.Stop") {
                 }
             });
 
             _ad.addEventListener(MouseEvent.CLICK, function (event:MouseEvent):void {
-                if (isPlaying) {
+
+                // VAST ClickThru event
+
+                if (!isPaused) {
+                    isPaused = true;
+
                     var clickThru:URLRequest = new URLRequest("http://www.utorrent.com");
                     navigateToURL(clickThru, "_blank");
+                } else {
+                    isPaused = false;
                 }
 
                 ns.togglePause();
             });
 
+            // TODO XXX: smart to have?
             _ad.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, function (event:UncaughtErrorEvent):void {
                 ExternalInterface.call("console.log", "unhandled exception: [" + event.type +"]: " + event.text);
 
-                // TODO: smart to have?
                 event.preventDefault();
                 event.stopImmediatePropagation();
             });
@@ -252,12 +252,13 @@ import flash.system.ApplicationDomain;
             }
 
             if (_ad != null) {
+                // TODO: handle VAST
                 _ad.adVolume = level;
             }
         }
 
 
-        // TODO XXX: any need for a debug flag anymore?
+        // TODO any need for a debug flag anymore?
         public function jsInitAd(adTag:String, debug:Boolean):void {
             var parser:VASTParser = new VASTParser();
             var urlRequest:URLRequest = new URLRequest(adTag);
@@ -268,16 +269,17 @@ import flash.system.ApplicationDomain;
                 _vastResponse = parser.parse();
 
                 // TODO XXX: only worry about first ad for now
-                var url:String = _vastResponse.ads[0].creatives[0].source.mediaFiles[0].uri
+                var currentAd = _vastResponse.ads[0];
+                var url:String = currentAd.creatives[0].source.mediaFiles[0].uri;
 
                 var splitUrl:Array = url.split(".");
 
                 var creativeType:String = splitUrl[splitUrl.length-1];
 
                 if (creativeType == "swf") {
-                    createFlashLoader(url);
+                    createFlashLoader(url, currentAd);
                 } else if (creativeType == "mp4" || creativeType == "flv" || creativeType == "avi") {    // TODO: more types
-                    startVideoPlayback(url);
+                    startVideoPlayback(url, currentAd);
                 } else {
                      // TODO: invalid creative type
                 }
@@ -297,6 +299,7 @@ import flash.system.ApplicationDomain;
 
         public function jsStopAd():void {
             _ad.stopAd();
+            // TODO: handle VAST
         }
 
 
@@ -307,11 +310,13 @@ import flash.system.ApplicationDomain;
 
         public function jsPauseAd():void {
             _ad.pauseAd();
+            // TODO: handle VAST
         }
 
 
         public function jsResumeAd():void {
             _ad.resumeAd();
+            // TODO: handle VAST
         }
 
 
@@ -320,16 +325,12 @@ import flash.system.ApplicationDomain;
         }
 
 
-        // TODO XXX: completely untested
         public function jsResizeAd(width:Number, height:Number):void {
             _display.width = width;
             _display.height = height;
 
-            // TODO: re-align to center if you're really cool
-            stage.scaleMode = StageScaleMode.NO_SCALE;
-            stage.align = StageAlign.TOP_LEFT;
-
             _ad.resizeAd(_display);
+            // TODO: handle VAST
         }
 
 
