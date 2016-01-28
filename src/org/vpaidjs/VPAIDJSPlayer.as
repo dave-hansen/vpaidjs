@@ -23,7 +23,8 @@ package org.vpaidjs {
     import flash.display.StageScaleMode;
     import flash.events.Event;
     import flash.events.IOErrorEvent;
-    import flash.external.ExternalInterface;
+import flash.events.UncaughtErrorEvent;
+import flash.external.ExternalInterface;
     import flash.media.SoundMixer;
     import flash.media.SoundTransform;
     import flash.net.URLLoader;
@@ -55,6 +56,9 @@ package org.vpaidjs {
         public function VPAIDJSPlayer():void {
             Security.allowDomain("*");
             registerExternalAPI();
+
+            stage.align = StageAlign.TOP_LEFT;
+            stage.scaleMode = StageScaleMode.NO_SCALE;
         }
 
         private function registerExternalAPI():void {
@@ -76,34 +80,43 @@ package org.vpaidjs {
         }
 
 
-        private function createLoader(adTag:String):void {
+        private function createFlashLoader(adTag:String):void {
+            if (_loader) {
+                // TODO: XXX does this actually do anything?
+                _loader.unload();
+            }
             _loader = new Loader();
 
-            _loader.contentLoaderInfo.addEventListener(Event.COMPLETE, function completeHandler(event:Event):void {
-                _loader.contentLoaderInfo.removeEventListener(Event.COMPLETE, completeHandler);
-                if (_loader.content)
-                {
-                    _ad = _loader.content;
-                }
+            loaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, function (event:UncaughtErrorEvent):void {
+                ExternalInterface.call("console.log", "unhandled exception: [" + event.type +"]: " + event.text);
 
-                initiateAd();
-            });
-
-            _loader.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR, function(event:Event):void {
+                // TODO: smart to have?
                 event.preventDefault();
                 event.stopImmediatePropagation();
             });
-            _loader.load(new URLRequest(adTag), new LoaderContext(false, ApplicationDomain.currentDomain, SecurityDomain.currentDomain));
+
+            _loader.contentLoaderInfo.addEventListener(Event.COMPLETE, function completeHandler(event:Event):void {
+                _loader.contentLoaderInfo.removeEventListener(Event.COMPLETE, completeHandler);
+                if (_loader.content) {
+                    _ad = _loader.content;
+
+                    initiateFlashAd();
+                } else {
+                    // TODO: exception?
+                }
+            });
+
+            _loader.load(
+                new URLRequest(adTag),
+                new LoaderContext(false, ApplicationDomain.currentDomain, SecurityDomain.currentDomain)
+            );
         }
 
 
-        private function initiateAd():void
-        {
-            if (_ad)
-            {
+        private function initiateFlashAd():void {
+            if (_ad) {
                 // TODO: wtf is this handshake stuff
-                if (_ad.hasOwnProperty("handshakeVersion"))
-                {
+                if (_ad.hasOwnProperty("handshakeVersion")) {
                     _adVPAIDVersion = _ad.handshakeVersion(VPAID_VERSION);
                 }
 
@@ -135,8 +148,7 @@ package org.vpaidjs {
                 _ad.addEventListener(AdEvent.AD_VOLUME_CHANGE, triggerExternalEvent);
 
                 // TODO: maybe this could be .getVAID() or killed altogether?
-                if (_ad.hasOwnProperty("initAd"))
-                {
+                if (_ad.hasOwnProperty("initAd")) {
                     ExternalInterface.call("vpaidjs.triggerEvent", ExternalInterface.objectID, "AdReady", "{}");
 
                     _display = _ad as DisplayObject;
@@ -153,6 +165,11 @@ package org.vpaidjs {
                     );
                 }
             }
+        }
+
+
+        private function startVideoPlayback(url:String) {
+
         }
 
 
@@ -192,28 +209,27 @@ package org.vpaidjs {
 
                 // TODO XXX: only worry about first ad for now
                 if (_vastResponse.ads.length && _vastResponse.ads[0].creatives.length) {
+                    // TODO playthrough of multiple ads
 
-                    // TODO:
-                    // 1. queue up ads to play
-                    // 1. playthrough of queueing of multiple ads
-                    // 2. select appropriate creative (is this in `creatives` or `mediaFiles`?)
+                    for (var i in _vastResponse.ads) {
+                        var url:String = _vastResponse[i].creatives[0].source.mediaFiles[0].uri;
+                        var splitUrl:Array = url.split(".");
 
-                    var url:String = _vastResponse.ads[0].creatives[0].source.mediaFiles[0].uri;
+                        var creativeType:String = splitUrl[splitUrl.length-1];
 
-                    // TOOD: boilerplate from example code; clever but necessary?
-                    if (stage) {
-                        // Only do these if this is the top-level SWF.
-                        stage.align = StageAlign.TOP_LEFT;
-                        stage.scaleMode = StageScaleMode.NO_SCALE;
+                        if (creativeType == "swf") {
+                            createFlashLoader(url);
+                        } else if (creativeType == "mp4" || creativeType == "flv" || creativeType == "avi") {    // TODO: more types
+//                            startVideoPlayback(url);
+                            'sdf';
+                        } else {
+                             // TODO: invalid creative type
+                        }
 
-                        createLoader(url);
+                        // TODO: actually iterate
+                        break;
                     }
-                    else {
-                        addEventListener(Event.ADDED_TO_STAGE, function waitingToBeAdded(event:Event):void {
-                            removeEventListener(Event.ADDED_TO_STAGE, waitingToBeAdded);
-                            createLoader(url);
-                        });
-                    }
+
                 }
             });
 

@@ -157,6 +157,7 @@ var VPAID = function(playerId, options) {
 
     if (player.options.autoplay) {
       player.on("AdReady", function(e) {
+        // TODO XXX: let's not do this resize business anymore
         player.resizeAd(player.width, player.height);   // hack so ads report their actual size
         player.startAd();
       });
