@@ -18,18 +18,25 @@
 package org.vpaidjs {
     import flash.display.DisplayObject;
     import flash.display.Loader;
-    import flash.display.Sprite;
+import flash.display.MovieClip;
+import flash.display.Sprite;
     import flash.display.StageAlign;
     import flash.display.StageScaleMode;
     import flash.events.Event;
     import flash.events.IOErrorEvent;
+import flash.events.MouseEvent;
+import flash.events.NetStatusEvent;
 import flash.events.UncaughtErrorEvent;
 import flash.external.ExternalInterface;
     import flash.media.SoundMixer;
     import flash.media.SoundTransform;
-    import flash.net.URLLoader;
+import flash.media.Video;
+import flash.net.NetConnection;
+import flash.net.NetStream;
+import flash.net.URLLoader;
     import flash.net.URLRequest;
-    import flash.system.ApplicationDomain;
+import flash.net.navigateToURL;
+import flash.system.ApplicationDomain;
     import flash.system.LoaderContext;
     import flash.system.Security;
     import flash.system.SecurityDomain;
@@ -48,7 +55,7 @@ import flash.external.ExternalInterface;
         protected var _adVPAIDVersion:String;
 
         // TODO XXX: be sure to clear/garbage collect these after playback
-        protected var _ad:Object;
+        protected var _ad:Object;           // TODO XXX: is it safe to use different types between flash vs video playback?
         protected var _display:DisplayObject;
         protected var _loader:Loader;
         protected var _vastResponse:VAST;
@@ -169,7 +176,60 @@ import flash.external.ExternalInterface;
 
 
         private function startVideoPlayback(url:String) {
+            var _ad:MovieClip = new MovieClip();
+            var vastVideo:Video = new Video(stage.stageWidth, stage.stageHeight);
+            var isPlaying:Boolean = false;
 
+            _ad.addChild(vastVideo);
+            addChild(_ad);
+
+            var nc:NetConnection = new NetConnection();
+            nc.connect(null);
+            var ns:NetStream = new NetStream(nc);
+
+            // these callbacks are required or else NetConnection will blow up on you
+            ns.client = {};
+            ns.client.onMetaData = function() {};
+            ns.client.onCuePoint = function() {};
+
+            vastVideo.attachNetStream(ns);
+            ns.play(url);
+
+            ns.addEventListener(NetStatusEvent.NET_STATUS, function (event:NetStatusEvent):void {
+                // TODO XXX: is there an obvious event on playback start?
+
+                ExternalInterface.call("console.log", "event: " + event.info.description);
+                if (event.info.code == "NetStream.Play.Start" || event.info.description == "Unpausing") {
+                    isPlaying = true;
+
+                    // TODO: ping on playback start to `Impression`
+
+                } else if (event.info.description == "Pausing") {
+                    isPlaying = false;
+                } else {
+                    ExternalInterface.call("console.log", "code: " + event.info.code);
+                }
+            });
+
+            _ad.addEventListener(MouseEvent.CLICK, function (event:MouseEvent):void {
+                if (isPlaying) {
+                    var clickThru:URLRequest = new URLRequest("http://www.utorrent.com");
+                    navigateToURL(clickThru, "_blank");
+                }
+
+                ns.togglePause();
+            });
+
+            _ad.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, function (event:UncaughtErrorEvent):void {
+                ExternalInterface.call("console.log", "unhandled exception: [" + event.type +"]: " + event.text);
+
+                // TODO: smart to have?
+                event.preventDefault();
+                event.stopImmediatePropagation();
+            });
+
+
+            // TODO XXX: what other pings?
         }
 
 
@@ -208,29 +268,21 @@ import flash.external.ExternalInterface;
                 _vastResponse = parser.parse();
 
                 // TODO XXX: only worry about first ad for now
-                if (_vastResponse.ads.length && _vastResponse.ads[0].creatives.length) {
-                    // TODO playthrough of multiple ads
+                var url:String = _vastResponse.ads[0].creatives[0].source.mediaFiles[0].uri
 
-                    for (var i in _vastResponse.ads) {
-                        var url:String = _vastResponse[i].creatives[0].source.mediaFiles[0].uri;
-                        var splitUrl:Array = url.split(".");
+                var splitUrl:Array = url.split(".");
 
-                        var creativeType:String = splitUrl[splitUrl.length-1];
+                var creativeType:String = splitUrl[splitUrl.length-1];
 
-                        if (creativeType == "swf") {
-                            createFlashLoader(url);
-                        } else if (creativeType == "mp4" || creativeType == "flv" || creativeType == "avi") {    // TODO: more types
-//                            startVideoPlayback(url);
-                            'sdf';
-                        } else {
-                             // TODO: invalid creative type
-                        }
-
-                        // TODO: actually iterate
-                        break;
-                    }
-
+                if (creativeType == "swf") {
+                    createFlashLoader(url);
+                } else if (creativeType == "mp4" || creativeType == "flv" || creativeType == "avi") {    // TODO: more types
+                    startVideoPlayback(url);
+                } else {
+                     // TODO: invalid creative type
                 }
+
+                // TODO: actually iterate
             });
 
             urlLoader.load(urlRequest);
