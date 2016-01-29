@@ -43,7 +43,6 @@ package org.vpaidjs {
     import com.hinish.spec.iab.vast.parsers.VASTParser;
     import com.hinish.spec.iab.vast.vos.VAST;
     import com.hinish.spec.iab.vpaid.AdEvent;
-    import com.hinish.spec.iab.vpaid.AdViewMode;
 
 
     public class VPAIDJSPlayer extends Sprite {
@@ -164,7 +163,7 @@ package org.vpaidjs {
                     _ad.initAd(
                         stage.stageWidth,
                         stage.stageHeight,
-                        AdViewMode.NORMAL,
+                        "normal",
                         4800,       // TODO: could probably a better ideal default bitrate
                         "",
                         ""
@@ -174,6 +173,12 @@ package org.vpaidjs {
                     ExternalInterface.call("vpaidjs.triggerEvent", ExternalInterface.objectID, "AdReady", "{}");
                 }
             }
+        }
+
+        private function sendVastPing(url:String) {
+            var impressionRequest:URLRequest = new URLRequest(url);
+            var impressionRequestLoader:URLLoader = new URLLoader();
+            impressionRequestLoader.load(impressionRequest);
         }
 
 
@@ -205,9 +210,8 @@ package org.vpaidjs {
 
                 if (event.info.code == "NetStream.Play.Start") {
                     // TODO: ping on playback start to `Impression`
-                    var impressionRequest:URLRequest = new URLRequest("http://localhost");
-                    var impressionRequestLoader:URLLoader = new URLLoader();
-                    impressionRequestLoader.load(impressionRequest);
+                    sendVastPing("http://impression.url")
+
 
                 } else if (event.info.code == "NetStream.Play.Stop") {
                     // TODO ?
