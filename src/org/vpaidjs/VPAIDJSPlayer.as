@@ -176,9 +176,13 @@ package org.vpaidjs {
         }
 
         private function sendVastPing(url:String) {
-            var impressionRequest:URLRequest = new URLRequest(url);
-            var impressionRequestLoader:URLLoader = new URLLoader();
-            impressionRequestLoader.load(impressionRequest);
+            var getRequest:URLRequest = new URLRequest(url);
+            var getRequestLoader:URLLoader = new URLLoader();
+            getRequestLoader.load(getRequest);
+        }
+
+        private function registerVastEvents():void {
+
         }
 
 
@@ -203,29 +207,30 @@ package org.vpaidjs {
             };
 
             vastVideo.attachNetStream(ns);
-            ns.play(adTag);
 
             ns.addEventListener(NetStatusEvent.NET_STATUS, function (event:NetStatusEvent):void {
                 // TODO XXX: is there an obvious event on playback start?
 
                 if (event.info.code == "NetStream.Play.Start") {
                     // TODO: ping on playback start to `Impression`
-                    sendVastPing("http://impression.url")
-
+                    ExternalInterface.call("vpaidjs.triggerEvent", ExternalInterface.objectID, AdEvent.AD_STARTED, "{}");
+                    ExternalInterface.call("vpaidjs.triggerEvent", ExternalInterface.objectID, AdEvent.AD_IMPRESSION, "{}");
 
                 } else if (event.info.code == "NetStream.Play.Stop") {
                     // TODO ?
+                    ExternalInterface.call("vpaidjs.triggerEvent", ExternalInterface.objectID, AdEvent.AD_STOPPED, "{}");
                 }
             });
 
-            _ad.addEventListener(MouseEvent.CLICK, function (event:MouseEvent):void {
 
+            _ad.addEventListener(MouseEvent.CLICK, function (event:MouseEvent):void {
                 if (!isPaused) {
                     isPaused = true;
-                    // VAST ClickThru event
-
                     var clickThru:URLRequest = new URLRequest("http://www.utorrent.com");
                     navigateToURL(clickThru, "_blank");
+
+                    ExternalInterface.call("vpaidjs.triggerEvent", ExternalInterface.objectID, AdEvent.AD_PAUSED, "{}");
+                    ExternalInterface.call("vpaidjs.triggerEvent", ExternalInterface.objectID, AdEvent.AD_CLICK_THRU, "{}");
                 } else {
                     isPaused = false;
                 }
@@ -239,12 +244,10 @@ package org.vpaidjs {
                 event.stopImmediatePropagation();
             });
 
-
             // TODO XXX: what other pings?
-        }
+            registerVastEvents();
 
-        private function registerVastTrackingEvents() {
-
+            ns.play(adTag);
         }
 
 
