@@ -107,8 +107,6 @@ package org.vpaidjs {
                     _ad = _loader.content;
 
                     initiateFlashAd();
-                } else {
-                    // TODO: exception?
                 }
             });
 
@@ -154,8 +152,6 @@ package org.vpaidjs {
 
                 // TODO: maybe this could be .getVAID() or killed altogether?
                 if (_ad.hasOwnProperty("initAd")) {
-                    ExternalInterface.call("vpaidjs.triggerEvent", ExternalInterface.objectID, "AdReady", "{}");
-
                     _display = _ad as DisplayObject;
                     addChild(_display);
 
@@ -247,6 +243,7 @@ package org.vpaidjs {
             // TODO XXX: what other pings?
             registerVastEvents();
 
+            // start VAST playback; no AdReady event sent
             ns.play(adTag);
         }
 
@@ -287,7 +284,7 @@ package org.vpaidjs {
                 parser.setData(XML(event.currentTarget.data));
                 _vastResponse = parser.parse();
 
-                // TODO XXX: only worry about first ad for now
+                // TODO XXX: only worrying about first ad for now
                 var currentAd = _vastResponse.ads[0];
                 var url:String = currentAd.creatives[0].source.mediaFiles[0].uri;
 
@@ -310,15 +307,14 @@ package org.vpaidjs {
         }
 
 
-        public function jsStartAd(adSlotIndex:Number=0):void {
-            // TODO: resize if too big
-            _ad.startAd()
+        // no VAST support from here forward
+        public function jsStartAd():void {
+            _ad.startAd();
         }
 
 
         public function jsStopAd():void {
             _ad.stopAd();
-            // TODO: handle VAST
         }
 
 
@@ -329,13 +325,11 @@ package org.vpaidjs {
 
         public function jsPauseAd():void {
             _ad.pauseAd();
-            // TODO: handle VAST
         }
 
 
         public function jsResumeAd():void {
             _ad.resumeAd();
-            // TODO: handle VAST
         }
 
 
@@ -345,12 +339,9 @@ package org.vpaidjs {
 
 
         public function jsResizeAd(width:Number, height:Number):void {
-            if (_ad && _display) {
+            if (_display) {
                 _display.width = width;
                 _display.height = height;
-
-                _ad.resizeAd(width, height, "normal");
-                // TODO: handle VAST
             }
         }
 
