@@ -1,20 +1,18 @@
-// version 0.2a
-
 var vpaidjs = vpaidjs || {};
+
+vpaidjs.version = "1.0.0";
 
 // defaults
 vpaidjs.options = {
   volume: 0.8,
   swfPath: "vpaidjs.swf",
   autoplay: false,
-  callbacks: false,
   debug: false
 };
 vpaidjs.activeAds = {};
 
 var VPAID = function(playerId, options) {
   var player = this;
-
   this.ad = {};
   this.registeredEvents = [];
 
@@ -159,6 +157,7 @@ var VPAID = function(playerId, options) {
 
     if (player.options.autoplay) {
       player.on("AdReady", function(e) {
+        // TODO XXX: let's not do this resize business anymore
         player.resizeAd(player.width, player.height);   // hack so ads report their actual size
         player.startAd();
       });
@@ -195,6 +194,6 @@ vpaidjs.triggerEvent = function(objectId, eventType, dataObj) {
   document.dispatchEvent(vpaidEvent);
 };
 
-vpaidjs.VPAIDEvents = ["AdReady", "AdLoading", "AdLoaded", "AdStarted", "AdPaused", "AdStopped", "AdLinearChange", "AdExpandedChange", "AdVolumeChange", "AdImpression", "AdVideoStart", "AdVideoFirstQuartile", "AdVideoMidpoint", "AdVideoThirdQuartile", "AdVideoComplete", "AdClickThru", "AdUserAcceptInvitation", "AdUserMinimize", "AdUserClose", "AdPlaying", "AdLog", "AdError", "AdSkipped", "AdSkippableStateChange", "AdSizeChange", "AdDurationChange", "AdInteraction"];
+vpaidjs.VPAIDEvents = ["AdReady", "AdLoading", "AdLoaded", "AdStarted", "AdPaused", "AdStopped", "AdLinearChange", "AdExpandedChange", "AdVolumeChange", "AdImpression", "AdVideoStart", "AdVideoFirstQuartile", "AdVideoMidpoint", "AdVideoThirdQuartile", "AdVideoComplete", "AdClickThru", "AdUserAcceptInvitation", "AdUserMinimize", "AdUserClose", "AdPlaying", "AdLog", "AdError", "AdSkipped", "AdSkippableStateChange", "AdSizeChange", "AdDurationChange", "AdInteraction", "UserActive"];
 
 window.vpaidjs = vpaidjs;
