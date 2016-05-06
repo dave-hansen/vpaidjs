@@ -7,8 +7,10 @@ vpaidjs.options = {
   volume: 0.8,
   swfPath: "vpaidjs.swf",
   autoplay: false,
+  timeout: 0,
   debug: false
 };
+
 vpaidjs.activeAds = {};
 
 var VPAID = function(playerId, options) {
@@ -24,10 +26,10 @@ var VPAID = function(playerId, options) {
     this.options[option] = options[option];
   }
 
-  this.width = this.container.style.width.replace(/[^\d]/g, '') ||
+  this.width = this.container.style.width.replace(/[^\d]/g, "") ||
                this.container.width;
 
-  this.height = this.container.style.height.replace(/[^\d]/g, '') ||
+  this.height = this.container.style.height.replace(/[^\d]/g, "") ||
                 this.container.parentElement.height;
 
   this.create = function() {
@@ -44,18 +46,31 @@ var VPAID = function(playerId, options) {
       name: player.playerId
     };
 
-    swfobject.embedSWF(player.options.swfPath, player.playerId, this.width, this.height, "10.5", "", flashvars, params, attributes, onCreate);
+    swfobject.embedSWF(
+      player.options.swfPath,
+      player.playerId,
+      this.width,
+      this.height,
+      "10.5",
+      "",
+      flashvars,
+      params,
+      attributes,
+      onCreate
+    );
   };
 
   this.initAd = function (adTag) {
-    player.ad.initAd(adTag, player.options.debug);
+    player.ad.initAd(adTag);
   };
 
   this.resizeAd = function (width, height) {
-    player.ad.resizeAd(width, height);
+    if (player.ad) {
+      player.ad.resizeAd(width, height);
 
-    player.width = width;
-    player.height = height;
+      player.width = width;
+      player.height = height;
+    }
   };
 
   this.startAd = function () {
@@ -95,6 +110,7 @@ var VPAID = function(playerId, options) {
       var eventName = player.registeredEvents[i][0];
       var cb = player.registeredEvents[i][1];
 
+      // TODO XXX verify works with new CustomEvent work
       document.removeEventListener(eventName, cb);
     }
 
@@ -107,7 +123,7 @@ var VPAID = function(playerId, options) {
     var events = typeof eventName === "object" ? eventName : eventName.split(" ");
 
     for (var i in events) {
-      var nsEvent = player.playerId + ':' + events[i];
+      var nsEvent = player.playerId + ":" + events[i];
 
       document.addEventListener(nsEvent, cb);
       player.registeredEvents.push([nsEvent, cb]);
@@ -117,7 +133,7 @@ var VPAID = function(playerId, options) {
   // utilities
   function onCreate(e) {
     if (!e.success || !e.ref) {
-      vpaidjs.log("Failed to embed SWF.");
+      vpaidjs.util.log("Failed to embed SWF.");
       return false;
     }
     waitForSwfObject(e);
@@ -135,7 +151,7 @@ var VPAID = function(playerId, options) {
   function waitForAdInterface(e) {
     // timer to wait for swf object to fully load
     var adWait = setInterval(function() {
-      vpaidjs.log(player.options.swfPath + " " + e.ref.PercentLoaded() + "% loaded.");
+      vpaidjs.util.log(player.options.swfPath + " " + e.ref.PercentLoaded() + "% loaded.");
       if (e.ref.PercentLoaded() === 100) {
         player.ad = document.getElementById(player.playerId);
 
@@ -156,16 +172,18 @@ var VPAID = function(playerId, options) {
     }
 
     if (player.options.autoplay) {
-      player.on("AdReady", function(e) {
-        // TODO XXX: let's not do this resize business anymore
-        player.resizeAd(player.width, player.height);   // hack so ads report their actual size
+      player.on("AdLoaded", function(e) {
         player.startAd();
       });
     }
 
     // you never know when sound gets turned on
-    player.on("AdLoaded AdStarted AdVideoStart", function(e) {
+    player.on("AdStarted AdVideoStart", function(e) {
       player.volume(player.options.volume);
+    });
+
+    player.on("AdComplete", function(e) {
+      player.destroy();
     });
 
     if (typeof player.options.success === "function") {
@@ -177,7 +195,8 @@ var VPAID = function(playerId, options) {
   this.create();
 };
 
-vpaidjs.log = function(message) {
+vpaidjs.util = {};
+vpaidjs.util.log = function(message) {
   if (vpaidjs.options.debug) {
     try {
       window.top.console.log("vpaidjs: " + message);
@@ -185,15 +204,29 @@ vpaidjs.log = function(message) {
   }
 };
 
-vpaidjs.triggerEvent = function(objectId, eventType, dataObj) {
-  vpaidjs.log("[vpaid.js] event: " + eventType);
-
-  var nsEvent = objectId + ':' + eventType;
-  var vpaidEvent = new CustomEvent(nsEvent, { detail: JSON.parse(dataObj) });
-
-  document.dispatchEvent(vpaidEvent);
+// TODO XXX make sure this is ie?+ compatible
+vpaidjs.util.ping = function(uri) {
+  var xhr = new XMLHttpRequest();
+  xhr.open("GET", encodeURI(uri));
+  xhr.send();     // NOTE: no HTTP status code checking
 };
 
-vpaidjs.VPAIDEvents = ["AdReady", "AdLoading", "AdLoaded", "AdStarted", "AdPaused", "AdStopped", "AdLinearChange", "AdExpandedChange", "AdVolumeChange", "AdImpression", "AdVideoStart", "AdVideoFirstQuartile", "AdVideoMidpoint", "AdVideoThirdQuartile", "AdVideoComplete", "AdClickThru", "AdUserAcceptInvitation", "AdUserMinimize", "AdUserClose", "AdPlaying", "AdLog", "AdError", "AdSkipped", "AdSkippableStateChange", "AdSizeChange", "AdDurationChange", "AdInteraction", "UserActive"];
+vpaidjs.util.triggerEvent = function(objectId, eventType, dataObj) {
+  var vpaidEvent = document.createEvent("Event");
+  vpaidEvent.initEvent(objectId + ":" + eventType, true, true);
+  vpaidEvent.detail = JSON.parse(dataObj || "{}");
+
+  // TODO XXX test IE legacy support: ie8? ie9/10? ie11?
+  document.dispatchEvent(vpaidEvent);
+
+  var logMessage = eventType;
+  if (vpaidEvent.detail.hasOwnProperty("data") && vpaidEvent.detail.data !== "{}") {
+    logMessage += ": " + JSON.stringify(vpaidEvent.detail.data);
+  }
+  vpaidjs.util.log(logMessage);
+};
+
+vpaidjs.VPAIDEvents = ["AdReady", "AdLoading", "AdLoaded", "AdStarted", "AdPaused", "AdStopped", "AdLinearChange", "AdExpandedChange", "AdVolumeChange", "AdImpression", "AdVideoStart", "AdVideoFirstQuartile", "AdVideoMidpoint", "AdVideoThirdQuartile", "AdVideoComplete", "AdClickThru", "AdUserAcceptInvitation", "AdUserMinimize", "AdUserClose", "AdPlaying", "AdLog", "AdError", "AdSkipped", "AdSkippableStateChange", "AdSizeChange", "AdDurationChange", "AdInteraction", "MouseOver", "AdComplete"];
 
 window.vpaidjs = vpaidjs;
+

@@ -3,6 +3,7 @@
     <meta http-equiv="content-type" content="text/html; charset=UTF-8">
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+
     <style type="text/css">
         #vpaid-container {
           background-color: silver;
@@ -23,14 +24,14 @@
             margin: 5px;
         }
     </style>
-    <!--[if IE]>
+    <!--[if lt IE 9]>
     <script src="//cdnjs.cloudflare.com/ajax/libs/ie8/0.3.0/ie8.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/dom4/1.6.0/dom4.js"></script>
     <![endif]-->
     <script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
     <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
     <script src="//ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js"></script>
-    <script src="../dist/js/vpaid.js"></script>
+    <script src="js/vpaid.js"></script>
 </head>
 <body>
     <div class="container">
@@ -96,7 +97,7 @@
 
     <script type="text/javascript">
       var vpaidAd = {};
-      vpaidjs.options.swfPath = "../dist/vpaidjs.swf";
+      vpaidjs.options.swfPath = "swf/vpaidjs.swf";
       vpaidjs.options.debug = true;
 
 
@@ -114,16 +115,24 @@
           volume: $("#volume-select").val(),
           success: function() {
             var startTime = new Date().getTime();
-            var playbackTimer = setInterval(function (e) {
-              timeElapsed = (new Date().getTime() - startTime);
-              $("#playback-timer").html((timeElapsed / 1000.0).toFixed(2));
-            }, 10);
+            var playbackTimer = setInterval(function(e) {
+                timeElapsed = (new Date().getTime() - startTime);
+                $("#playback-timer").html((timeElapsed / 1000.0).toFixed(1));
+            }, 100);
 
+            // register event blinky lights
             vpaidAd.on(vpaidjs.VPAIDEvents, function(e) {
               $("#" + e.type.split(':')[1]).addClass("triggered").attr("title", timeElapsed);
             });
 
-            vpaidAd.on("AdStopped AdError", function(e) {
+            vpaidAd.on("AdLoaded", function(e) {
+              $("button").not("#AdLoaded").removeClass("triggered");
+            });
+
+            vpaidAd.on("AdReady", function(e) {
+            });
+
+            vpaidAd.on("AdStopped", function(e) {
               clearInterval(playbackTimer);
             });
           }
